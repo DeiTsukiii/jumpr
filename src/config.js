@@ -1,4 +1,8 @@
-import { preload, update, create } from "./game.js";
+import PreloadingScene from "./scenes/preloading.js";
+import GameScene from "./scenes/game.js";
+
+const urlParams = new URLSearchParams(window.location.search);
+const debug = urlParams.get('debug') === 'true';
 
 export const CONFIG = {
     type: Phaser.AUTO,
@@ -10,20 +14,16 @@ export const CONFIG = {
         height: innerHeight
     },
     parent: 'game-container',
-    pixelArt: true,
+    pixelArt: !debug,
     input: {
         activePointers: 3,
     },
-    scene: {
-        preload,
-        create,
-        update
-    },
+    scene: [PreloadingScene, GameScene],
     physics: {
         default: 'arcade',
         arcade: {
             gravity: { y: 1000 },
-            debug: false
+            debug: debug
         }
     }
 }
