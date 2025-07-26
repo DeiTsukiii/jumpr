@@ -228,6 +228,7 @@ export default class GameScene extends Phaser.Scene {
         this.scoreTot = 0;
         this.gameStarted = false;
         this.canJump = false;
+        mouseX = 225;
         clearInterval(this.platformInterval);
         this.menu = {
             text: 'GAME OVER',
