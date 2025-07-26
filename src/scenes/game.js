@@ -11,7 +11,6 @@ export default class GameScene extends Phaser.Scene {
         this.scoreTot = 0;
         this.scoreText;
         this.startGame;
-        this.gameStarted = false;
         this.lastPlayerY;
         this.stars = [];
         this.minDistanceX = 100;
@@ -40,8 +39,8 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
-    _createPlayer() {
-        this.player = this.physics.add.sprite(225, 660, 'whiteRect')
+    _createPlayer(playerX = 225, playerY = 660) {
+        this.player = this.physics.add.sprite(playerX, playerY, 'whiteRect')
             .setDisplaySize(40, 40)
             .setBounce(0)
             .setOrigin(0.5, 1)
@@ -69,8 +68,6 @@ export default class GameScene extends Phaser.Scene {
 
         if (Math.abs(playerBottom - platformTop) < tolerance && !platform.touched) {
             platform.touched = true;
-            
-            if (!this.gameStarted) this.gameStarted = true;
             
             this.player.setVelocityY(-600);
             this.sound.play('platformSound');
@@ -127,9 +124,7 @@ export default class GameScene extends Phaser.Scene {
                 scale: 0,
                 ease: 'Sine.easeOut',
                 duration: 2000,
-                onComplete: () => {
-                    starsGroup.forEach(s => s.star.destroy());
-                }
+                onComplete: () => starsGroup.forEach(s => s.star.destroy())
             });
 
             this.tweens.add({
@@ -153,35 +148,28 @@ export default class GameScene extends Phaser.Scene {
 
     _createPlatforms() {
         let lastPlatX = null;
-        for (let i = 0; i < 6; i++) {
+        const nbPlatforms = 10;
+        for (let i = 0; i < nbPlatforms; i++) {
             let x;
             const y = 550 - (i * 160);
 
-            const possibleX = [];
-            for (let candidate = 50; candidate <= 400; candidate += 1) {
-                if (lastPlatX === null || Math.abs(candidate - lastPlatX) >= this.minDistanceX) {
-                    possibleX.push(candidate);
-                }
-            }
-            x = Phaser.Utils.Array.GetRandom(possibleX);
-
+            x = Phaser.Math.Between(20, 430);
             lastPlatX = x;
 
-            const p = this.physics.add.staticImage(x, y, 'whiteRect')
+            const platform = this.physics.add.staticImage(x, y, 'whiteRect')
                 .setDisplaySize(30, 30)
                 .setOrigin(0.5, 0)
                 .refreshBody();
 
-            this.platforms.push(p);
+            this.platforms.push(platform);
 
             this.platformInterval = setInterval(() => {
-                if (p.body) {
-                    p.y += 1;
-                    p.refreshBody();
-                }
+                if (!platform.body) return;
+                platform.y += 1;
+                platform.refreshBody();
             }, 30)
 
-            this.physics.add.collider(this.player, p, this._onPlatforHit, null, this);
+            this.physics.add.collider(this.player, platform, this._onPlatforHit, null, this);
         }
     }
 
@@ -215,7 +203,7 @@ export default class GameScene extends Phaser.Scene {
         this._setUI();
     }
 
-    _resetGame() {
+    _gameOver() {
         let highScore = parseInt(localStorage.getItem('404HighScore'));
         if (isNaN(highScore)) highScore = 0;
         if (this.scoreTot > highScore) highScore = this.scoreTot;
@@ -223,12 +211,11 @@ export default class GameScene extends Phaser.Scene {
 
         this.platforms.forEach(platform => platform.destroy());
         this.platforms = [];
+        const playerX = this.player.x;
         this.player.destroy();
         this.score = 1;
         this.scoreTot = 0;
-        this.gameStarted = false;
         this.canJump = false;
-        mouseX = 225;
         clearInterval(this.platformInterval);
         this.menu = {
             text: 'GAME OVER',
@@ -244,17 +231,29 @@ export default class GameScene extends Phaser.Scene {
         this.startGame.list[3].setText(`High Score: ${this.menu.highScoreValue}`);
         this.startGame.list[4].setText(`[ ${this.menu.btn} ]`);
 
-        this._createPlayer();
+        mouseX = playerX;
+        this._createPlayer(playerX);
         this._createPlatforms();
     }
 
-    update() {
-        let highestY = Math.min(...this.platforms.map(p => p.y));
+    _handleMovement() {
+        const speed = this.player.body.touching.down ? 200 : 500;
+        const distanceX = mouseX - this.player.x;
+        const targetSpeed = Math.abs(distanceX) > 3 ? Phaser.Math.Clamp(distanceX * 5, -speed, speed) : 0;
+        this.player.setVelocityX(targetSpeed);
 
-        if (this.gameStarted) {
+        if (this.input.activePointer.isDown && this.player.body.touching.down && this.canJump) this.player.setVelocityY(-600);
+    }
+
+    _handleGameOver() {
+        if (this.scoreTot >= 1) {
             if (this.lastPlayerY >= this.player.y) this.lastPlayerY = this.player.y;
-            else if (this.player.y - this.lastPlayerY >= 500 || this.ground.y - this.player.y <= 40) this._resetGame();
+            else if (this.player.y - this.lastPlayerY >= 500 || this.ground.y - this.player.y <= 40) this._gameOver();
         }
+    }
+
+    _handlePlatformMovement() {
+        let highestY = Math.min(...this.platforms.map(p => p.y));
 
         this.platforms.forEach((platform) => {
             if (platform.y >= this.player.y + 300 || platform.y >= this.ground.y - 100) {
@@ -284,20 +283,11 @@ export default class GameScene extends Phaser.Scene {
                 });
             }
         });
+    }
 
-        const speed = this.player.body.touching.down ? 200 : 500;
-        const distanceX = mouseX - this.player.x;
-        if (Math.abs(distanceX) > 3) {
-            const targetSpeed = Phaser.Math.Clamp(distanceX * 5, -speed, speed);
-            this.player.setVelocityX(targetSpeed);
-        } else {
-            this.player.setVelocityX(0);
-        }
-
-
-        const pointer = this.input.activePointer;
-        if (pointer.isDown && this.player.body.touching.down && this.canJump) {
-            this.player.setVelocityY(-600);
-        }
+    update() {
+        this._handlePlatformMovement();
+        this._handleGameOver();
+        this._handleMovement();
     }
 }
