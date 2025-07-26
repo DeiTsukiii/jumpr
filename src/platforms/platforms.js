@@ -6,7 +6,7 @@ import MovingPlatform from './moving.js';
 export { BasicPlatform, BreakablePlatform, BouncePlatform, MovingPlatform };
 
 export const spawnRates = {
-    breakable: 10,
-    bounce: 20,
-    moving: 30,
+    'BreakablePlatform': 10,
+    'BouncePlatform': 20,
+    'MovingPlatform': 30,
 }

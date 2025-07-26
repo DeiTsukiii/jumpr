@@ -243,13 +243,16 @@ export default class GameScene extends Phaser.Scene {
                         highestY = Math.min(highestY, newY);
                         this.lastPlatformX = newX;
 
-                        const random = Phaser.Math.Between(0, 100);
+                        const plats = [];
+                        Object.keys(spawnRates).forEach(key => {
+                            const PlatformClass = eval(key);
+                            for (let i = 0; i < spawnRates[key]; i++) plats.push(PlatformClass);
+                        });
+                        for (let i = 0; i < 100 - plats.length; i++) plats.push(BasicPlatform);
 
                         platform.destroy();
-                        if (random < spawnRates.breakable) this.platforms[index] = new BreakablePlatform(this, newX, newY);
-                        else if (random < spawnRates.bounce) this.platforms[index] = new BouncePlatform(this, newX, newY);
-                        else if (random < spawnRates.moving) this.platforms[index] = new MovingPlatform(this, newX, newY);
-                        else this.platforms[index] = new BasicPlatform(this, newX, newY);
+                        const randomPlatform = Phaser.Utils.Array.RemoveRandomElement(plats);
+                        this.platforms[index] = new randomPlatform(this, newX, newY);
                     }
                 });
             }
