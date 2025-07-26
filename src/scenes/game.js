@@ -229,6 +229,7 @@ export default class GameScene extends Phaser.Scene {
         this.gameStarted = false;
         this.canJump = true;
         clearInterval(this.platformInterval);
+        this.gameStarted = false;
         this.menu = {
             text: 'GAME OVER',
             score: true,
