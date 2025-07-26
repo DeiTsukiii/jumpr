@@ -17,9 +17,21 @@
             height: 100vh;
 			margin: 0 auto;
 		}
+		#debugButton {
+			position: absolute;
+			top: 10px;
+			right: 10px;
+			background-color: #333;
+			color: white;
+			border: none;
+			padding: 10px 20px;
+			cursor: pointer;
+			font-size: 16px;
+		}
 	</style>
 </head>
 <body>
+	<button id="debugButton" onclick="const url = window.location.search, urlParams = new URLSearchParams(url), debug = urlParams.get('debug') === 'true'; return window.location.href = `${window.location.pathname}?debug=${!debug}`;">debug</button>
 	<div class="game-container" id="game-container"></div>
 
     <script src="library/phaser.js"></script>
