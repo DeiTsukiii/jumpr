@@ -1,4 +1,4 @@
-import { BasicPlatform, BreakablePlatform, BouncePlatform, spawnRates } from "../platforms/platforms.js";
+import { BasicPlatform, BreakablePlatform, BouncePlatform, spawnRates, MovingPlatform } from "../platforms/platforms.js";
 
 let mouseX = 225;
 
@@ -248,6 +248,7 @@ export default class GameScene extends Phaser.Scene {
                         platform.destroy();
                         if (random < spawnRates.breakable) this.platforms[index] = new BreakablePlatform(this, newX, newY);
                         else if (random < spawnRates.bounce) this.platforms[index] = new BouncePlatform(this, newX, newY);
+                        else if (random < spawnRates.moving) this.platforms[index] = new MovingPlatform(this, newX, newY);
                         else this.platforms[index] = new BasicPlatform(this, newX, newY);
                     }
                 });

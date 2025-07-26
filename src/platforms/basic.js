@@ -35,11 +35,6 @@ export default class BasicPlatform extends Phaser.GameObjects.Image {
             ease: 'Sine.easeInOut',
             onComplete: () => {
                 if (this.y < this.scene.ground.y - 100) this.setX(1000);
-
-                // this.scene.scoreTot += this.scene.score;
-                // this.scene.score += 1;
-                // this.scene.scoreText.setText(this.scene.scoreTot);
-
                 callback();
             }
         });
