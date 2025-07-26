@@ -1,0 +1,17 @@
+{
+    "name": "Jumpr Game",
+    "short_name": "Jumpr",
+    "description": "Un jeu de saut amusant et stimulant.",
+    "start_url": "./",
+    "display": "fullscreen",
+    "background_color": "#0E0E0E",
+    "theme_color": "#0E0E0E",
+    "orientation": "portrait",
+    "icons": [
+        {
+        "src": "assets/logo.png",
+        "sizes": "798x799",
+        "type": "image/png"
+        }
+    ]
+}
