@@ -7,6 +7,7 @@ export default class GameScene extends Phaser.Scene {
         super('GameScene');
 
         this.player;
+        this.playerTrail;
         this.ground;
         this.platforms = [];
         this.started = false;
@@ -51,6 +52,16 @@ export default class GameScene extends Phaser.Scene {
         this.lastPlayerY = this.player.y;
         this.physics.add.collider(this.player, this.ground);
         this.cameras.main.startFollow(this.player, false, 0, 0.1);
+        this.playerTrail = this.add.particles(0, 0, 'flares', {
+            frame: { frames: ['white'] }, 
+            // speed: { min: -100, max: 100 },
+            scale: { start: 0.2, end: 0 },
+            alpha: { start: 1, end: 0 },
+            lifespan: 1000,
+            blendMode: 'ADD',
+            follow: this.player,
+            followOffset: { y: -20, x: 0 }
+        });
     }
 
     _createWorld() {
@@ -186,6 +197,7 @@ export default class GameScene extends Phaser.Scene {
         this.platforms = [];
         const playerX = this.player.x;
         this.player.destroy();
+        this.playerTrail.destroy();
         this.canJump = false;
         this.started = false;
         this.menu = {
