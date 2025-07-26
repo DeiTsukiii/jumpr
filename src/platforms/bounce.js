@@ -11,7 +11,7 @@ export default class BouncePlatform extends BasicPlatform {
     onHit(player) {
         super.onHit(player);
 
-        if (!this.canTouch) return;
+        if (!this.canTouch || !this.active) return;
 
         if (this.bounce > 0) {
             player.setVelocityY(-this.bounce);

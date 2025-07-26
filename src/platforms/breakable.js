@@ -10,7 +10,7 @@ export default class BreakablePlatform extends BasicPlatform {
     onHit(player) {
         super.onHit(player);
 
-        if (!this.canTouch) return;
+        if (!this.canTouch || !this.active) return;
         super.despawn(() => this.canTouch = false);
     }
 }

@@ -1,4 +1,4 @@
-import { BasicPlatform, BreakablePlatform, BouncePlatform } from "../platforms/platforms.js";
+import { BasicPlatform, BreakablePlatform, BouncePlatform, spawnRates } from "../platforms/platforms.js";
 
 let mouseX = 225;
 
@@ -133,26 +133,15 @@ export default class GameScene extends Phaser.Scene {
     }
 
     _createPlatforms() {
-        let lastPlatX = null;
         const nbPlatforms = 10;
         for (let i = 0; i < nbPlatforms; i++) {
             let x;
             const y = 550 - (i * 160);
 
             x = Phaser.Math.Between(20, 430);
-            lastPlatX = x;
 
-            // const platform = new BasicPlatform(this, x, y);
-            // const platform = new BreakablePlatform(this, x, y);
-            const platform = new BouncePlatform(this, x, y);
+            const platform = new BasicPlatform(this, x, y);
             this.platforms.push(platform);
-
-            this.platformInterval = setInterval(() => {
-                if (!platform.body) return;
-                platform.y += 1;
-            }, 30)
-
-            this.physics.add.collider(this.player, platform, this._onPlatformHit, null, this);
         }
     }
 
@@ -199,7 +188,6 @@ export default class GameScene extends Phaser.Scene {
         this.player.destroy();
         this.canJump = false;
         this.started = false;
-        clearInterval(this.platformInterval);
         this.menu = {
             text: 'GAME OVER',
             score: true,
@@ -239,8 +227,9 @@ export default class GameScene extends Phaser.Scene {
     _handlePlatformMovement() {
         let highestY = Math.min(...this.platforms.map(p => p.y));
 
-        this.platforms.forEach((platform) => {
-            if (platform.y >= this.player.y + 300 || platform.y >= this.ground.y - 100) {
+        this.platforms.forEach((platform, index) => {
+            if ((platform.y >= this.player.y + 300 || platform.y >= this.ground.y - 100) && platform.active) {
+                platform.active = false;
                 this.tweens.add({
                     targets: platform,
                     alpha: 0,
@@ -249,20 +238,17 @@ export default class GameScene extends Phaser.Scene {
                         let newX;
                         const newY = highestY - 160;
 
-                        const possibleX = [];
-                        for (let candidate = 50; candidate <= 400; candidate += 1) {
-                            if (this.lastPlatformX === null || Math.abs(candidate - this.lastPlatformX) >= this.minDistanceX) {
-                                possibleX.push(candidate);
-                            }
-                        }
-                        newX = Phaser.Utils.Array.GetRandom(possibleX);
-
-                        platform.setPosition(newX, newY);
-                        platform.setAlpha(1);
+                        newX = Phaser.Math.Between(20, 430);
 
                         highestY = Math.min(highestY, newY);
-                        this.lastPlatformX = newX
-                        platform.canTouch = true;
+                        this.lastPlatformX = newX;
+
+                        const random = Phaser.Math.Between(0, 100);
+
+                        platform.destroy();
+                        if (random < spawnRates.breakable) this.platforms[index] = new BreakablePlatform(this, newX, newY);
+                        else if (random < spawnRates.bounce) this.platforms[index] = new BouncePlatform(this, newX, newY);
+                        else this.platforms[index] = new BasicPlatform(this, newX, newY);
                     }
                 });
             }

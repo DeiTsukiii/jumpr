@@ -13,7 +13,7 @@ export const CONFIG = {
         width: 450,
         height: innerHeight
     },
-    parent: 'game-container',
+    parent: 'gameContainer',
     pixelArt: !debug,
     input: {
         activePointers: 3,

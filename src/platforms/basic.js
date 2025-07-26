@@ -6,14 +6,22 @@ export default class BasicPlatform extends Phaser.GameObjects.Image {
         this.setDisplaySize(30, 30);
         this.setOrigin(0.5, 0);
         this.canTouch = true;
+        this.active = true;
         this.scene = scene;
         this.body.setImmovable(true);
         this.body.setAllowGravity(false);
         this.hitSound = 'platformSound';
+
+        setInterval(() => {
+            if (!this.body) return;
+            this.y += 1;
+        }, 30);
+
+        this.scene.physics.add.collider(this.scene.player, this, this.scene._onPlatformHit, null, this.scene);
     }
 
     onHit(player) {
-        if (!this.canTouch) return;
+        if (!this.canTouch || !this.active) return;
         player.setVelocityY(-600);
         this.scene.sound.play(this.hitSound);
     }

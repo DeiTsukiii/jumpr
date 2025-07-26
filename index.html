@@ -31,11 +31,34 @@
 			border-radius: 10px;
 			display: none;
 		}
+		#rotate {
+			position: absolute;
+			font-family: 'Courier New', Courier, monospace;
+			background-color: transparent;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			color: #ffffff;
+			font-size: 24px;
+			text-align: center;
+			display: none;
+		}
+
+		@media (max-height: 600px) {
+			#rotate {
+				display: block;
+			}
+			.game-container {
+				opacity: 0;
+			}
+		}
 	</style>
 </head>
 <body>
-	<button id="debugButton" onclick="const url = window.location.search, urlParams = new URLSearchParams(url), debug = urlParams.get('debug') === 'true'; return window.location.href = `${window.location.pathname}?debug=${!debug}`;">debug</button>
-	<div class="game-container" id="game-container"></div>
+	<div class="game-container" id="gameContainer">
+		<button id="debugButton" onclick="const url = window.location.search, urlParams = new URLSearchParams(url), debug = urlParams.get('debug') === 'true'; return window.location.href = `${window.location.pathname}?debug=${!debug}`;">debug</button>
+	</div>
+	<div id="rotate">Rotate your phone.</div>
 
     <script src="library/phaser.js"></script>
     <script src="src/main.js" type="module"></script>
