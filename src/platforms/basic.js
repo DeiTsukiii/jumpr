@@ -1,16 +1,22 @@
 export default class BasicPlatform extends Phaser.GameObjects.Image {
     constructor(scene, x, y) {
         super(scene, x, y, 'whiteRect');
+        this.scene = scene;
         scene.add.existing(this);
         scene.physics.add.existing(this);
         this.setDisplaySize(30, 30);
         this.setOrigin(0.5, 0);
         this.canTouch = true;
         this.active = true;
-        this.scene = scene;
         this.body.setImmovable(true);
         this.body.setAllowGravity(false);
         this.hitSound = 'platformSound';
+
+        if (Math.random() < 0.05) {
+            const items = ['shield'];
+            const randomItem = Phaser.Utils.Array.GetRandom(items);
+            this.item = this.scene.add.image(x, y - 17, `item-${randomItem}`).setDisplaySize(25, 25).setOrigin(0.5, 0.5);
+        }
 
         setInterval(() => {
             if (!this.body) return;
@@ -24,19 +30,20 @@ export default class BasicPlatform extends Phaser.GameObjects.Image {
         if (!this.canTouch || !this.active) return;
         player.setVelocityY(-600);
         this.scene.sound.play(this.hitSound);
+        if (this.item) this.claimItem();
     }
 
-    despawn(callback = () => {}) {
-        this.scene.tweens.add({
-            targets: this,
-            y: this.y + 10,
-            duration: 100,
-            yoyo: true,
-            ease: 'Sine.easeInOut',
-            onComplete: () => {
-                if (this.y < this.scene.ground.y - 100) this.setX(1000);
-                callback();
-            }
-        });
+    update(time, delta) {
+        if (!this.body || !this.item) return;
+        this.item.setPosition(this.x, this.y - 17 - Math.sin(time * 0.002) * 5);
+        this.item.alpha = this.alpha;
+    }
+
+    claimItem(player) {
+        if (!this.item || !this.scene) return;
+        this.scene._circleStarsFX(this.item.x, this.item.y);
+        this.scene._getItem(this.item.texture.key.replace('item-', ''));
+        this.item.destroy();
+        this.item = null;
     }
 }

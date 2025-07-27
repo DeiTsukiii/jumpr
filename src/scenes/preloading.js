@@ -17,8 +17,9 @@ export default class PreloadingScene extends Phaser.Scene {
         this.load.audio('platformSound', 'platform.mp3');
         this.load.atlas('flares', 'flares.png', 'flares.json');
 
+        this.load.image('item-shield', 'items/shield.png');
+
         this.make.graphics().fillStyle(0xffffff).fillRect(0, 0, 50, 10).generateTexture('whiteRect', 50, 10).destroy();
-        this.make.graphics().fillStyle(0xffffff).fillCircle(2, 2, 2).generateTexture('star', 4, 4).destroy();
     }
 
     create() {

@@ -8,24 +8,17 @@ export default class GameScene extends Phaser.Scene {
 
         this.player;
         this.playerTrail;
+        this.items = [];
         this.ground;
         this.platforms = [];
         this.started = false;
         this.score = 0;
         this.scoreText;
         this.startGame;
-        this.lastPlayerY;
         this.stars = [];
         this.minDistanceX = 100;
         this.lastPlatformX = null;
         this.canJump = false;
-        this.menu = {
-            text: 'Jumpr',
-            score: false,
-            scoreValue: 'Move mouse to move.',
-            highScoreValue: 'Click to jump.',
-            btn: 'Play'
-        };
     }
 
     _generateBackground() {
@@ -33,7 +26,9 @@ export default class GameScene extends Phaser.Scene {
             const x = Phaser.Math.Between(0, 450);
             const y = Phaser.Math.Between(0, window.innerHeight - 100);
 
-            const star = this.add.image(x, y, 'star')
+            const size = Phaser.Math.Between(8, 10);
+            const star = this.add.image(x, y, 'flares', 'white')
+                .setDisplaySize(size, size)
                 .setScrollFactor(0)
                 .setDepth(-1)
                 .setAlpha(Phaser.Math.FloatBetween(0.3, 0.8));
@@ -49,7 +44,6 @@ export default class GameScene extends Phaser.Scene {
             .setOrigin(0.5, 1)
             .setCollideWorldBounds(true)
             .setDepth(10);
-        this.lastPlayerY = this.player.y;
         this.physics.add.collider(this.player, this.ground);
         this.cameras.main.startFollow(this.player, false, 0, 0.1);
         this.playerTrail = this.add.particles(0, 0, 'flares', {
@@ -101,43 +95,11 @@ export default class GameScene extends Phaser.Scene {
             //         floatText.destroy();
             //     }
             // });
-
-            // const starsGroup = [];
-            // const starCount = 20;
-            // const radius = 40;
-
-            // for (let i = 0; i < starCount; i++) {
-            //     const angle = (i / starCount) * Math.PI * 2;
-
-            //     const startX = centerX + Math.cos(angle) * radius;
-            //     const startY = centerY + Math.sin(angle) * radius;
-
-            //     const star = this.add.image(startX, startY, 'star')
-            //         .setDepth(20)
-            //         .setAlpha(1)
-            //         .setScale(1);
-
-            //     starsGroup.push({ star, angle });
-            // }
-
-            // this.tweens.add({
-            //     targets: starsGroup.map(s => s.star),
-            //     x: {
-            //         getEnd: (target, key, value, targetIndex) => {
-            //             return centerX + Math.cos(starsGroup[targetIndex].angle) * (radius + 60);
-            //         }
-            //     },
-            //     y: {
-            //         getEnd: (target, key, value, targetIndex) => {
-            //             return centerY + Math.sin(starsGroup[targetIndex].angle) * (radius + 60);
-            //         }
-            //     },
-            //     alpha: 0,
-            //     scale: 0,
-            //     ease: 'Sine.easeOut',
-            //     duration: 2000,
-            //     onComplete: () => starsGroup.forEach(s => s.star.destroy())
-            // });
+        }
+    }
+    _getItem(item) {
+        if (!this.items.includes(item)) {
+            this.items.push(item);
         }
     }
 
@@ -161,11 +123,12 @@ export default class GameScene extends Phaser.Scene {
         this.startGame = this.add.container(225, 350).setVisible(true).setDepth(100);
 
         const bg = this.add.rectangle(0, 0, 300, 200, 0x000000, 0.8);
-        const startGameText = this.add.bitmapText(0, -60, 'pixelFont', this.menu.text, 30).setOrigin(0.5);
-        const scoreDisplay = this.add.bitmapText(0, -10, 'pixelFont', this.menu.score ? `Score: ${this.menu.scoreValue}` : this.menu.scoreValue, 20).setOrigin(0.5);
-        const highScoreDisplay = this.add.bitmapText(0, 20, 'pixelFont', this.menu.score ? `High Score: ${this.menu.highScoreValue}` : this.menu.highScoreValue, 20).setOrigin(0.5);
+        
+        const startGameText = this.add.bitmapText(0, -60, 'pixelFont', "Jumpr", 30).setOrigin(0.5);
+        const scoreDisplay = this.add.bitmapText(0, -10, 'pixelFont', "Move mouse to move.", 20).setOrigin(0.5);
+        const highScoreDisplay = this.add.bitmapText(0, 20, 'pixelFont', "Click to jump.", 20).setOrigin(0.5);
 
-        const restartBtn = this.add.bitmapText(0, 70, 'pixelFont', `[ ${this.menu.btn} ]`, 20)
+        const restartBtn = this.add.bitmapText(0, 70, 'pixelFont', "[ Play ]", 20)
             .setOrigin(0.5)
             .setInteractive()
             .on('pointerdown', () => {
@@ -176,6 +139,15 @@ export default class GameScene extends Phaser.Scene {
         this.startGame.add([bg, startGameText, scoreDisplay, highScoreDisplay, restartBtn]);
     }
 
+    _setPossiblePlatforms() {
+        this.possiblePlatforms = [];
+        Object.keys(spawnRates).forEach(key => {
+            const PlatformClass = eval(key);
+            for (let i = 0; i < spawnRates[key]; i++) this.possiblePlatforms.push(PlatformClass);
+        });
+        for (let i = 0; i < 100 - this.possiblePlatforms.length; i++) this.possiblePlatforms.push(BasicPlatform);
+    }
+
     create() {
         this.input.on('pointermove', pointer => mouseX = pointer.x);
         this._generateBackground();
@@ -183,6 +155,7 @@ export default class GameScene extends Phaser.Scene {
         this._createPlayer();
         this._createPlatforms();
         this._setUI();
+        this._setPossiblePlatforms();
     }
 
     _gameOver() {
@@ -198,31 +171,74 @@ export default class GameScene extends Phaser.Scene {
         this.playerTrail.destroy();
         this.canJump = false;
         this.started = false;
-        this.menu = {
-            text: 'GAME OVER',
-            score: true,
-            scoreValue: this.score,
-            highScoreValue: highScore,
-            btn: 'Replay'
-        }
-        this.score = 0;
         this.scoreText.setText('0 m');
         this.startGame.setVisible(true);
-        this.startGame.list[1].setText(this.menu.text);
-        this.startGame.list[2].setText(`Score: ${this.menu.scoreValue} m`);
-        this.startGame.list[3].setText(`High Score: ${this.menu.highScoreValue} m`);
-        this.startGame.list[4].setText(`[ ${this.menu.btn} ]`);
+        this.startGame.list[1].setText("GAME OVER");
+        this.startGame.list[2].setText(`Score: ${this.score} m`);
+        this.startGame.list[3].setText(`High Score: ${highScore} m`);
+        this.startGame.list[4].setText("[ Replay ]");
+        this.score = 0;
 
         mouseX = playerX;
         this._createPlayer(playerX);
         this._createPlatforms();
     }
 
+    _circleStarsFX(x, y) {
+        const starsGroup = [];
+        const starCount = 20;
+        const radius = 40;
+
+        for (let i = 0; i < starCount; i++) {
+            const angle = (i / starCount) * Math.PI * 2;
+
+            const startX = x + Math.cos(angle) * radius;
+            const startY = y + Math.sin(angle) * radius;
+
+            const star = this.add.image(startX, startY, 'flares', 'white')
+                .setScale(0.2)
+                .setAlpha(1);
+
+            starsGroup.push({ star, angle });
+        }
+
+        this.tweens.add({
+            targets: starsGroup.map(s => s.star),
+            x: {
+                getEnd: (target, key, value, targetIndex) => {
+                    return x + Math.cos(starsGroup[targetIndex].angle) * (radius + 60);
+                }
+            },
+            y: {
+                getEnd: (target, key, value, targetIndex) => {
+                    return y + Math.sin(starsGroup[targetIndex].angle) * (radius + 60);
+                }
+            },
+            alpha: 0,
+            scale: 0,
+            ease: 'Sine.easeOut',
+            duration: 2000,
+            onComplete: () => starsGroup.forEach(s => s.star.destroy())
+        });
+    }
+
+    _secondChance() {
+        this.started = false;
+        setTimeout(() => this.started = true, 100);
+        this.player.setVelocityY(-1500);
+        this.items.pop('shield');
+
+        this._circleStarsFX(this.player.x, this.player.y - 100);
+    }
+
     _handleGameOver() {
         if (!this.started) return;
+
         const minPlatformY = Math.max(...this.platforms.map(p => p.y));
-        if (this.lastPlayerY >= this.player.y) this.lastPlayerY = this.player.y;
-        else if (minPlatformY < this.player.y - 500 || this.ground.y - this.player.y <= 40) this._gameOver();
+        if (minPlatformY < this.player.y - 500 || this.ground.y - this.player.y <= 40) {
+            if (this.items.includes('shield')) this._secondChance();
+            else this._gameOver();
+        }
     }
 
     _handleMovement() {
@@ -234,34 +250,32 @@ export default class GameScene extends Phaser.Scene {
         if (this.input.activePointer.isDown && this.player.body.touching.down && this.ground.y - this.player.y <= 40 && this.canJump) this.player.setVelocityY(-600);
     }
 
-    _handlePlatformMovement() {
+    _getRandomPlatform() {
+        return Phaser.Utils.Array.GetRandom(this.possiblePlatforms);
+    }
+
+    _handlePlatformRecycle(time, delta) {
         let highestY = Math.min(...this.platforms.map(p => p.y));
 
         this.platforms.forEach((platform, index) => {
-            if ((platform.y >= this.player.y + 300 || platform.y >= this.ground.y - 100) && platform.active) {
+            if (!platform.body) return;
+            platform.update(time, delta);
+            if ((platform.y >= this.player.y + (innerHeight / 2) || platform.y >= this.ground.y - 100) && platform.active) {
                 platform.active = false;
                 this.tweens.add({
                     targets: platform,
                     alpha: 0,
                     duration: 200,
                     onComplete: () => {
-                        let newX;
+                        const newX = Phaser.Math.Between(20, 430);
                         const newY = highestY - 160;
-
-                        newX = Phaser.Math.Between(20, 430);
 
                         highestY = Math.min(highestY, newY);
                         this.lastPlatformX = newX;
 
-                        const plats = [];
-                        Object.keys(spawnRates).forEach(key => {
-                            const PlatformClass = eval(key);
-                            for (let i = 0; i < spawnRates[key]; i++) plats.push(PlatformClass);
-                        });
-                        for (let i = 0; i < 100 - plats.length; i++) plats.push(BasicPlatform);
-
                         platform.destroy();
-                        const randomPlatform = Phaser.Utils.Array.RemoveRandomElement(plats);
+                        if (platform.item) platform.item.destroy();
+                        const randomPlatform = this._getRandomPlatform();
                         this.platforms[index] = new randomPlatform(this, newX, newY);
                     }
                 });
@@ -275,8 +289,8 @@ export default class GameScene extends Phaser.Scene {
         this.scoreText.setText(`${height} m`);
     }
 
-    update() {
-        this._handlePlatformMovement();
+    update(time, delta) {
+        this._handlePlatformRecycle(time, delta);
         this._handleGameOver();
         this._handleMovement();
         this._updateScore();

@@ -11,6 +11,16 @@ export default class BreakablePlatform extends BasicPlatform {
         super.onHit(player);
 
         if (!this.canTouch || !this.active) return;
-        super.despawn(() => this.canTouch = false);
+        this.scene.tweens.add({
+            targets: this,
+            y: this.y + 10,
+            duration: 100,
+            yoyo: true,
+            ease: 'Sine.easeInOut',
+            onComplete: () => {
+                if (this.y < this.scene.ground.y - 100) this.setX(1000);
+                this.canTouch = false;
+            }
+        });
     }
 }

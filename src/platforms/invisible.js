@@ -7,8 +7,24 @@ export default class InvisiblePlatform extends BasicPlatform {
         this.setTint(0x00FFFF);
         this.setAlpha(0);
 
-        setInterval(() => {
-            this.setAlpha(this.alpha === 0 ? 1 : 0);
-        }, 3000);
+        setTimeout(() => this.reveal(), Phaser.Math.Between(2000, 4000));
+    }
+
+    reveal() {
+        if (!this.body) return;
+        this.scene.tweens.add({
+            targets: this,
+            alpha: 1,
+            duration: 200,
+            onComplete: () => {
+                if (!this.body) return;
+                this.scene.tweens.add({
+                    targets: this,
+                    alpha: 0,
+                    duration: 200,
+                    onComplete: () => setTimeout(() => this.reveal(), Phaser.Math.Between(2000, 4000))
+                });
+            }
+        });
     }
 }
