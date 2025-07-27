@@ -1,4 +1,4 @@
-import { BasicPlatform, BreakablePlatform, BouncePlatform, spawnRates, MovingPlatform } from "../platforms/platforms.js";
+import { BasicPlatform, BreakablePlatform, BouncePlatform, spawnRates, MovingPlatform, InvisiblePlatform } from "../platforms/platforms.js";
 
 let mouseX = 225;
 
@@ -53,8 +53,7 @@ export default class GameScene extends Phaser.Scene {
         this.physics.add.collider(this.player, this.ground);
         this.cameras.main.startFollow(this.player, false, 0, 0.1);
         this.playerTrail = this.add.particles(0, 0, 'flares', {
-            frame: { frames: ['white'] }, 
-            // speed: { min: -100, max: 100 },
+            frame: { frames: ['white'] },
             scale: { start: 0.2, end: 0 },
             alpha: { start: 1, end: 0 },
             lifespan: 1000,
@@ -80,7 +79,6 @@ export default class GameScene extends Phaser.Scene {
         const tolerance = 15;
 
         if (Math.abs(playerBottom - platformTop) < tolerance && platform.canTouch) {
-            // platform.canTouch = false;
 
             if (!this.started) this.started = true;
             
