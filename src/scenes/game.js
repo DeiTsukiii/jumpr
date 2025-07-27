@@ -141,39 +141,25 @@ export default class GameScene extends Phaser.Scene {
         const scoreDisplay = this.add.bitmapText(0, -15, 'pixelFont', "Move mouse to move.", 20).setOrigin(0.5);
         const highScoreDisplay = this.add.bitmapText(0, 15, 'pixelFont', "Click to jump.", 20).setOrigin(0.5);
 
-        const buttonYPosition = 60;
-        const restartBtnTxt = this.add.bitmapText(0, buttonYPosition, 'pixelFont', "[ Play ]", 25)
+        this.uiButton = {
+            yPosition: 60,
+            width: 100,
+            height: 45,
+            radius: 10,
+        }
+
+        const restartBtnTxt = this.add.bitmapText(0, this.uiButton.yPosition, 'pixelFont', "[ Play ]", 25)
             .setOrigin(0.5)
             .setTint(0xFFFFFF);
 
-        this.buttonWidth = 100;
-        const buttonHeight = 45;
-        const buttonRadius = 10;
-
         const restartBtnGraphics = this.add.graphics()
             .fillStyle(0x2E2E2E, 0.7)
-            .fillRoundedRect(-this.buttonWidth / 2, buttonYPosition - (buttonHeight / 2), this.buttonWidth, buttonHeight, buttonRadius);
+            .fillRoundedRect(-this.uiButton.width / 2, this.uiButton.yPosition - (this.uiButton.height / 2), this.uiButton.width, this.uiButton.height, this.uiButton.radius);
 
-        const restartBtn = this.add.rectangle(0, buttonYPosition, this.buttonWidth, buttonHeight, 0x2E2E2E, 0)
+        const restartBtn = this.add.rectangle(0, this.uiButton.yPosition, this.uiButton.width, this.uiButton.height, 0x2E2E2E, 0)
             .setScrollFactor(0)
             .setOrigin(0.5)
             .setInteractive({ useHandCursor: true })
-            .on('pointerover', () => {
-                restartBtnGraphics.clear();
-                restartBtnGraphics.fillStyle(0xCCCCCC, 0.9);
-                restartBtnGraphics.fillRoundedRect(-this.buttonWidth / 2, buttonYPosition - (buttonHeight / 2), this.buttonWidth, buttonHeight, buttonRadius);
-
-                restartBtnTxt.setTint(0x0E0E0E);
-                // this.tweens.add({ targets: [restartBtnGraphics, restartBtnTxt], scale: 1.05, duration: 100, ease: 'Power1' });
-            })
-            .on('pointerout', () => {
-                restartBtnGraphics.clear();
-                restartBtnGraphics.fillStyle(0x2E2E2E, 0.7);
-                restartBtnGraphics.fillRoundedRect(-this.buttonWidth / 2, buttonYPosition - (buttonHeight / 2), this.buttonWidth, buttonHeight, buttonRadius);
-
-                restartBtnTxt.setTint(0xFFFFFF);
-                // this.tweens.add({ targets: [restartBtnGraphics, restartBtnTxt], scale: 1, duration: 100, ease: 'Power1' });
-            })
             .on('pointerdown', () => {
                 if (this.sound.get('buttonClick')) {
                     this.sound.play('buttonClick');
@@ -251,10 +237,10 @@ export default class GameScene extends Phaser.Scene {
         this.startGame.list[1].setText("GAME OVER");
         this.startGame.list[2].setText(`Score: ${this.score} m`);
         this.startGame.list[3].setText(`High Score: ${highScore} m`);
-        this.buttonWidth = 140;
+        this.uiButton.width = 140;
         this.startGame.list[4].clear();
         this.startGame.list[4].fillStyle(0x2E2E2E, 0.7);
-        this.startGame.list[4].fillRoundedRect(-this.buttonWidth / 2, 60 - (45 / 2), this.buttonWidth, 45, 10);
+        this.startGame.list[4].fillRoundedRect(-this.uiButton.width / 2, this.uiButton.yPosition - (this.uiButton.height / 2), this.uiButton.width, this.uiButton.height, this.uiButton.radius);
         this.startGame.list[5].setText("[ Replay ]");
         this.toggleStartGameMenu(true);
         this.score = 0;
