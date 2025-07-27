@@ -8,7 +8,9 @@ export default class GameScene extends Phaser.Scene {
 
         this.player;
         this.playerTrail;
-        this.items = [];
+        this.items = {
+            shield: { value: 0, duration: 60 }
+        };
         this.ground;
         this.platforms = [];
         this.started = false;
@@ -23,12 +25,13 @@ export default class GameScene extends Phaser.Scene {
             items: 0.05,
             platforms: 0
         }
+        this.itemDepletionRate = 6 / 10000;
     }
 
     _generateBackground() {
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < window.innerHeight / 5; i++) {
             const x = Phaser.Math.Between(0, 450);
-            const y = Phaser.Math.Between(0, window.innerHeight - 100);
+            const y = Phaser.Math.Between(0, window.innerHeight);
 
             const size = Phaser.Math.Between(8, 10);
             const star = this.add.image(x, y, 'flares', 'white')
@@ -51,13 +54,13 @@ export default class GameScene extends Phaser.Scene {
         this.physics.add.collider(this.player, this.ground);
         this.cameras.main.startFollow(this.player, false, 0, 0.1);
         this.playerTrail = this.add.particles(0, 0, 'flares', {
-            frame: { frames: ['white'] },
+            frame: 'white',
             scale: { start: 0.2, end: 0 },
             alpha: { start: 1, end: 0 },
             lifespan: 1000,
             blendMode: 'ADD',
             follow: this.player,
-            followOffset: { y: -20, x: 0 }
+            followOffset: { y: -20, x: 0 },
         });
     }
 
@@ -83,30 +86,10 @@ export default class GameScene extends Phaser.Scene {
             }
             
             platform.onHit(player);
-            
-            // const floatText = this.add.bitmapText(platform.x, platform.y - 20, 'pixelFont', `+${this.score}`, 20)
-            //     .setOrigin(0.5)
-            //     .setDepth(20);
-
-            // const centerX = platform.x;
-            // const centerY = platform.y - 20;
-
-            // this.tweens.add({
-            //     targets: floatText,
-            //     y: floatText.y - 30,
-            //     alpha: 0,
-            //     duration: 2000,
-            //     ease: 'Sine.easeOut',
-            //     onComplete: () => {
-            //         floatText.destroy();
-            //     }
-            // });
         }
     }
     _getItem(item) {
-        if (!this.items.includes(item)) {
-            this.items.push(item);
-        }
+        this.items[item].value = this.items[item].duration;
     }
 
     _createPlatforms() {
@@ -126,23 +109,64 @@ export default class GameScene extends Phaser.Scene {
         this.scoreText = this.add.bitmapText(20, 20, 'pixelFont', '0', 30).setDepth(11).setScrollFactor(0);
         document.getElementById('debugButton').style.display = 'block';
 
-        this.startGame = this.add.container(225, 350).setVisible(true).setDepth(100);
+        const centerX = this.sys.game.config.width / 2;
+        const centerY = this.sys.game.config.height / 2;
 
-        const bg = this.add.rectangle(0, 0, 300, 200, 0x000000, 0.8);
-        
-        const startGameText = this.add.bitmapText(0, -60, 'pixelFont', "Jumpr", 30).setOrigin(0.5);
-        const scoreDisplay = this.add.bitmapText(0, -10, 'pixelFont', "Move mouse to move.", 20).setOrigin(0.5);
-        const highScoreDisplay = this.add.bitmapText(0, 20, 'pixelFont', "Click to jump.", 20).setOrigin(0.5);
+        this.startGame = this.add.container(centerX, centerY)
+            .setVisible(true)
+            .setDepth(100)
+            .setScrollFactor(0)
+            .setAlpha(0)
+            .setScale(0.8);
 
-        const restartBtn = this.add.bitmapText(0, 70, 'pixelFont', "[ Play ]", 20)
+        this.toggleStartGameMenu = bool => {
+            if (bool) this.startGame.setVisible(true);
+            this.tweens.add({
+                targets: this.startGame,
+                alpha: bool ? 1 : 0,
+                scale: bool ? 1 : 0.8,
+                duration: 500,
+                ease: 'Back.easeOut',
+                onComplete: () => {
+                    if (!bool) this.startGame.setVisible(false);
+                }
+            });
+        }
+
+        const bg = this.add.rectangle(0, 0, 300, 200, 0x000000, 0.8)
             .setOrigin(0.5)
-            .setInteractive()
+            .setStrokeStyle(2, 0xFFFFFF);
+
+        const startGameText = this.add.bitmapText(0, -60, 'pixelFont', "Jumpr", 40).setOrigin(0.5);
+        const scoreDisplay = this.add.bitmapText(0, -15, 'pixelFont', "Move mouse to move.", 20).setOrigin(0.5);
+        const highScoreDisplay = this.add.bitmapText(0, 15, 'pixelFont', "Click to jump.", 20).setOrigin(0.5);
+
+        const restartBtnTxt = this.add.bitmapText(0, 60, 'pixelFont', "[ Play ]", 25)
+            .setOrigin(0.5)
+            .setTint(0xFFFFFF);
+
+        const restartBtn = this.add.rectangle(0, 60, 100, 45, 0x2E2E2E, 0.7)
+            .setScrollFactor(0)
+            .setInteractive({ useHandCursor: true })
+            .setOrigin(0.5)
+            .on('pointerover', () => {
+                restartBtn.setFillStyle(0xCCCCCC, 0.9);
+                restartBtnTxt.setTint(0x0E0E0E);
+                this.tweens.add({ targets: [restartBtn, restartBtnTxt], scale: 1.05, duration: 100, ease: 'Power1' });
+            })
+            .on('pointerout', () => {
+                restartBtn.setFillStyle(0x2E2E2E, 0.7);
+                restartBtnTxt.setTint(0xFFFFFF);
+                this.tweens.add({ targets: [restartBtn, restartBtnTxt], scale: 1, duration: 100, ease: 'Power1' });
+            })
             .on('pointerdown', () => {
-                this.startGame.setVisible(false);
+                this.toggleStartGameMenu(false);
                 setTimeout(() => this.canJump = true, 100);
             });
 
-        this.startGame.add([bg, startGameText, scoreDisplay, highScoreDisplay, restartBtn]);
+        this.startGame.add([bg, startGameText, scoreDisplay, highScoreDisplay, restartBtn, restartBtnTxt]);
+
+        this.toggleStartGameMenu(true);
     }
 
     create() {
@@ -168,12 +192,17 @@ export default class GameScene extends Phaser.Scene {
         this.canJump = false;
         this.started = false;
         this.scoreText.setText('0 m');
-        this.startGame.setVisible(true);
         this.startGame.list[1].setText("GAME OVER");
         this.startGame.list[2].setText(`Score: ${this.score} m`);
         this.startGame.list[3].setText(`High Score: ${highScore} m`);
-        this.startGame.list[4].setText("[ Replay ]");
+        this.startGame.list[4].setSize(150, 45);
+        this.startGame.list[5].setText("[ Replay ]");
+        this.toggleStartGameMenu(true);
         this.score = 0;
+        this.spawnRates = {
+            items: 0.05,
+            platforms: 0
+        }
 
         mouseX = playerX;
         this._createPlayer(playerX);
@@ -222,7 +251,7 @@ export default class GameScene extends Phaser.Scene {
         this.started = false;
         setTimeout(() => this.started = true, 100);
         this.player.setVelocityY(-1500);
-        this.items.pop('shield');
+        this.items.shield.value = 0;
 
         this._circleStarsFX(this.player.x, this.player.y - 100);
     }
@@ -232,7 +261,7 @@ export default class GameScene extends Phaser.Scene {
 
         const minPlatformY = Math.max(...this.platforms.map(p => p.y));
         if (minPlatformY < this.player.y - 500 || this.ground.y - this.player.y <= 40) {
-            if (this.items.includes('shield')) this._secondChance();
+            if (this.items.shield.value > 0) this._secondChance();
             else this._gameOver();
         }
     }
@@ -267,9 +296,8 @@ export default class GameScene extends Phaser.Scene {
                         this.lastPlatformX = newX;
 
                         platform.destroy();
-                        if (platform.item) platform.item.destroy();
-                        let possiblePlatforms = [ BasicPlatform ];
-                        if (Math.random() < this.spawnRates.platforms) possiblePlatforms = [ BreakablePlatform, BouncePlatform, MovingPlatform, InvisiblePlatform ];
+                        let possiblePlatforms = [BasicPlatform];
+                        if (Math.random() < this.spawnRates.platforms) possiblePlatforms = [BreakablePlatform, BouncePlatform, MovingPlatform, InvisiblePlatform];
                         const randomPlatform = Phaser.Utils.Array.GetRandom(possiblePlatforms);
                         this.platforms[index] = new randomPlatform(this, newX, newY);
                     }
@@ -284,10 +312,20 @@ export default class GameScene extends Phaser.Scene {
         this.scoreText.setText(`${height} m`);
     }
 
+    _updateItems(time, delta) {
+        Object.keys(this.items).forEach(item => {
+            if (this.items[item].value > 0) {
+                this.items[item].value -= this.itemDepletionRate * delta;
+                if (this.items[item].value <= 0) this.items[item].value = 0;
+            }
+        });
+    }
+
     update(time, delta) {
         this._handlePlatformRecycle(time, delta);
         this._handleGameOver();
         this._handleMovement();
         this._updateScore();
+        this._updateItems(time, delta);
     }
 }

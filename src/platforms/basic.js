@@ -46,4 +46,9 @@ export default class BasicPlatform extends Phaser.GameObjects.Image {
         this.item.destroy();
         this.item = null;
     }
+
+    destroy() {
+        if (this.item) this.item.destroy();
+        super.destroy();
+    }
 }
