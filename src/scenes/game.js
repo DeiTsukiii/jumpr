@@ -1,4 +1,4 @@
-import { BasicPlatform, BreakablePlatform, BouncePlatform, spawnRates, MovingPlatform, InvisiblePlatform } from "../platforms/platforms.js";
+import { BasicPlatform, BreakablePlatform, BouncePlatform, MovingPlatform, InvisiblePlatform } from "../platforms/platforms.js";
 
 let mouseX = 225;
 
@@ -19,6 +19,10 @@ export default class GameScene extends Phaser.Scene {
         this.minDistanceX = 100;
         this.lastPlatformX = null;
         this.canJump = false;
+        this.spawnRates = {
+            items: 0.05,
+            platforms: 0
+        }
     }
 
     _generateBackground() {
@@ -73,8 +77,10 @@ export default class GameScene extends Phaser.Scene {
         const tolerance = 15;
 
         if (Math.abs(playerBottom - platformTop) < tolerance && platform.canTouch) {
-
-            if (!this.started) this.started = true;
+            if (!this.started) {
+                this.started = true;
+                if (!this.incrementPlatSpawnRate) this.incrementPlatSpawnRate = setInterval(() => this.spawnRates.platforms += 0.005, 1000);
+            }
             
             platform.onHit(player);
             
@@ -139,15 +145,6 @@ export default class GameScene extends Phaser.Scene {
         this.startGame.add([bg, startGameText, scoreDisplay, highScoreDisplay, restartBtn]);
     }
 
-    _setPossiblePlatforms() {
-        this.possiblePlatforms = [];
-        Object.keys(spawnRates).forEach(key => {
-            const PlatformClass = eval(key);
-            for (let i = 0; i < spawnRates[key]; i++) this.possiblePlatforms.push(PlatformClass);
-        });
-        for (let i = 0; i < 100 - this.possiblePlatforms.length; i++) this.possiblePlatforms.push(BasicPlatform);
-    }
-
     create() {
         this.input.on('pointermove', pointer => mouseX = pointer.x);
         this._generateBackground();
@@ -155,7 +152,6 @@ export default class GameScene extends Phaser.Scene {
         this._createPlayer();
         this._createPlatforms();
         this._setUI();
-        this._setPossiblePlatforms();
     }
 
     _gameOver() {
@@ -250,16 +246,13 @@ export default class GameScene extends Phaser.Scene {
         if (this.input.activePointer.isDown && this.player.body.touching.down && this.ground.y - this.player.y <= 40 && this.canJump) this.player.setVelocityY(-600);
     }
 
-    _getRandomPlatform() {
-        return Phaser.Utils.Array.GetRandom(this.possiblePlatforms);
-    }
-
     _handlePlatformRecycle(time, delta) {
         let highestY = Math.min(...this.platforms.map(p => p.y));
 
         this.platforms.forEach((platform, index) => {
             if (!platform.body) return;
             platform.update(time, delta);
+
             if ((platform.y >= this.player.y + (innerHeight / 2) || platform.y >= this.ground.y - 100) && platform.active) {
                 platform.active = false;
                 this.tweens.add({
@@ -275,7 +268,9 @@ export default class GameScene extends Phaser.Scene {
 
                         platform.destroy();
                         if (platform.item) platform.item.destroy();
-                        const randomPlatform = this._getRandomPlatform();
+                        let possiblePlatforms = [ BasicPlatform ];
+                        if (Math.random() < this.spawnRates.platforms) possiblePlatforms = [ BreakablePlatform, BouncePlatform, MovingPlatform, InvisiblePlatform ];
+                        const randomPlatform = Phaser.Utils.Array.GetRandom(possiblePlatforms);
                         this.platforms[index] = new randomPlatform(this, newX, newY);
                     }
                 });

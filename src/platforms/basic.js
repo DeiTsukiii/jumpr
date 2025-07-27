@@ -12,7 +12,7 @@ export default class BasicPlatform extends Phaser.GameObjects.Image {
         this.body.setAllowGravity(false);
         this.hitSound = 'platformSound';
 
-        if (Math.random() < 0.05) {
+        if (Math.random() < this.scene.spawnRates.items) {
             const items = ['shield'];
             const randomItem = Phaser.Utils.Array.GetRandom(items);
             this.item = this.scene.add.image(x, y - 17, `item-${randomItem}`).setDisplaySize(25, 25).setOrigin(0.5, 0.5);
