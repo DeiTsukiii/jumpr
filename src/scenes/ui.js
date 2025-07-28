@@ -72,6 +72,7 @@ export default class UiScene extends Phaser.Scene {
 
         this.menu.add([bg, menuTitle, menuSubTitle, menuSubTitle2, menuButtonBg, menuButtonText, menuButton]);
 
+        this.sys.game.events.on(Phaser.Core.Events.BLUR, this.pause, this);
         this.toggleMenuView(true);
         this.setMenu('Jumpr', 'Move mouse to move.', 'Click to jump.', 'Play', () => this.scene.get('GameScene').canJump = true);
     }
