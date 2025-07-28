@@ -1,3 +1,0 @@
-add file: git add <file>
-commit: git commit -m "<message>"
-push: git push origin main
