@@ -7,10 +7,11 @@ export default class InvisiblePlatform extends BasicPlatform {
         this.setTint(0x00FFFF);
         this.setAlpha(0);
 
-        setTimeout(() => this.reveal(), Phaser.Math.Between(2000, 4000));
+        this.nextReveal = 0;
     }
 
     reveal() {
+        console.log('revealing');
         if (!this.body) return;
         this.scene.tweens.add({
             targets: this,
@@ -21,10 +22,18 @@ export default class InvisiblePlatform extends BasicPlatform {
                 this.scene.tweens.add({
                     targets: this,
                     alpha: 0,
-                    duration: 200,
-                    onComplete: () => setTimeout(() => this.reveal(), Phaser.Math.Between(2000, 4000))
+                    duration: 200
                 });
             }
         });
+    }
+
+    update(time, delta) {
+        super.update(time, delta);
+        if (!this.body) return;
+        if (this.nextReveal > 0 && time > this.nextReveal) {
+            this.nextReveal = time + Phaser.Math.Between(2000, 4000);
+            this.reveal();
+        } else if (this.nextReveal === 0) this.nextReveal = time + Phaser.Math.Between(2000, 4000);
     }
 }

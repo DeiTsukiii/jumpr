@@ -17,11 +17,7 @@ export default class BasicPlatform extends Phaser.GameObjects.Image {
             const randomItem = Phaser.Utils.Array.GetRandom(items);
             this.item = this.scene.add.image(x, y - 17, `item-${randomItem}`).setDisplaySize(25, 25).setOrigin(0.5, 0.5);
         }
-
-        setInterval(() => {
-            if (!this.body) return;
-            this.y += 1;
-        }, 30);
+        this.fallRate = 30;
 
         this.scene.physics.add.collider(this.scene.player, this, this.scene._onPlatformHit, null, this.scene);
     }
@@ -34,7 +30,9 @@ export default class BasicPlatform extends Phaser.GameObjects.Image {
     }
 
     update(time, delta) {
-        if (!this.body || !this.item) return;
+        if (!this.body) return;
+        this.y += this.fallRate * (1 / 1000) * delta;
+        if (!this.item) return;
         this.item.setPosition(this.x, this.y - 17 - Math.sin(time * 0.002) * 5);
         this.item.alpha = this.alpha;
     }

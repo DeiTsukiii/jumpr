@@ -6,12 +6,14 @@ export default class MovingPlatform extends BasicPlatform {
 
         this.limits = { min: 20, max: 430 };
         this.direction = 1;
-        setInterval(() => {
-            if (!this.body) return;
-            if (this.x < this.limits.min|| this.x > this.limits.max) this.direction *= -1;
-            this.x += 2 * this.direction;
-        }, 30);
 
         this.setTint(0x0000FF);
+    }
+
+    update(time, delta) {
+        super.update(time, delta);
+        if (!this.body) return;
+        this.x += 2 * this.fallRate * this.direction * (1 / 1000) * delta;
+        if (this.x < this.limits.min|| this.x > this.limits.max) this.direction *= -1;
     }
 }

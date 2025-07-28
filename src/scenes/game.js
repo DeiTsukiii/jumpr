@@ -15,8 +15,7 @@ export default class GameScene extends Phaser.Scene {
         this.platforms = [];
         this.started = false;
         this.score = 0;
-        this.scoreText;
-        this.startGame;
+        this.uiScene;
         this.stars = [];
         this.minDistanceX = 100;
         this.lastPlatformX = null;
@@ -25,7 +24,8 @@ export default class GameScene extends Phaser.Scene {
             items: 0.05,
             platforms: 0
         }
-        this.itemDepletionRate = 6 / 10000;
+        this.incrementPlatSpawnRate = 0.005;
+        this.itemDepletionRate = 1;
     }
 
     _generateBackground() {
@@ -80,10 +80,7 @@ export default class GameScene extends Phaser.Scene {
         const tolerance = 15;
 
         if (Math.abs(playerBottom - platformTop) < tolerance && platform.canTouch) {
-            if (!this.started) {
-                this.started = true;
-                if (!this.incrementPlatSpawnRate) this.incrementPlatSpawnRate = setInterval(() => this.spawnRates.platforms += 0.005, 1000);
-            }
+            if (!this.started) this.started = true;
             
             platform.onHit(player);
         }
@@ -106,71 +103,8 @@ export default class GameScene extends Phaser.Scene {
     }
 
     _setUI() {
-        this.scoreText = this.add.bitmapText(20, 20, 'pixelFont', '0', 30).setDepth(11).setScrollFactor(0);
-        document.getElementById('debugButton').style.display = 'block';
-
-        const centerX = this.sys.game.config.width / 2;
-        const centerY = this.sys.game.config.height / 2;
-
-        this.startGame = this.add.container(centerX, centerY)
-            .setVisible(true)
-            .setDepth(100)
-            .setScrollFactor(0)
-            .setAlpha(0)
-            .setScale(0.8);
-
-        this.toggleStartGameMenu = bool => {
-            if (bool) this.startGame.setVisible(true);
-            this.tweens.add({
-                targets: this.startGame,
-                alpha: bool ? 1 : 0,
-                scale: bool ? 1 : 0.8,
-                duration: 500,
-                ease: 'Back.easeOut',
-                onComplete: () => {
-                    if (!bool) this.startGame.setVisible(false);
-                }
-            });
-        }
-
-        const bg = this.add.rectangle(0, 0, 300, 200, 0x000000, 0.8)
-            .setOrigin(0.5)
-            .setStrokeStyle(2, 0xFFFFFF);
-
-        const startGameText = this.add.bitmapText(0, -60, 'pixelFont', "Jumpr", 40).setOrigin(0.5);
-        const scoreDisplay = this.add.bitmapText(0, -15, 'pixelFont', "Move mouse to move.", 20).setOrigin(0.5);
-        const highScoreDisplay = this.add.bitmapText(0, 15, 'pixelFont', "Click to jump.", 20).setOrigin(0.5);
-
-        this.uiButton = {
-            yPosition: 60,
-            width: 100,
-            height: 45,
-            radius: 10,
-        }
-
-        const restartBtnTxt = this.add.bitmapText(0, this.uiButton.yPosition, 'pixelFont', "[ Play ]", 25)
-            .setOrigin(0.5)
-            .setTint(0xFFFFFF);
-
-        const restartBtnGraphics = this.add.graphics()
-            .fillStyle(0x2E2E2E, 0.7)
-            .fillRoundedRect(-this.uiButton.width / 2, this.uiButton.yPosition - (this.uiButton.height / 2), this.uiButton.width, this.uiButton.height, this.uiButton.radius);
-
-        const restartBtn = this.add.rectangle(0, this.uiButton.yPosition, this.uiButton.width, this.uiButton.height, 0x2E2E2E, 0)
-            .setScrollFactor(0)
-            .setOrigin(0.5)
-            .setInteractive({ useHandCursor: true })
-            .on('pointerdown', () => {
-                if (this.sound.get('buttonClick')) {
-                    this.sound.play('buttonClick');
-                }
-                this.toggleStartGameMenu(false);
-                setTimeout(() => this.canJump = true, 100);
-            });
-
-        this.startGame.add([bg, startGameText, scoreDisplay, highScoreDisplay, restartBtnGraphics, restartBtnTxt, restartBtn]);
-
-        this.toggleStartGameMenu(true);
+        this.scene.launch('UiScene');
+        this.uiScene = this.scene.get('UiScene');
     }
 
     create() {
@@ -233,16 +167,8 @@ export default class GameScene extends Phaser.Scene {
         this.playerTrail.destroy();
         this.canJump = false;
         this.started = false;
-        this.scoreText.setText('0 m');
-        this.startGame.list[1].setText("GAME OVER");
-        this.startGame.list[2].setText(`Score: ${this.score} m`);
-        this.startGame.list[3].setText(`High Score: ${highScore} m`);
-        this.uiButton.width = 140;
-        this.startGame.list[4].clear();
-        this.startGame.list[4].fillStyle(0x2E2E2E, 0.7);
-        this.startGame.list[4].fillRoundedRect(-this.uiButton.width / 2, this.uiButton.yPosition - (this.uiButton.height / 2), this.uiButton.width, this.uiButton.height, this.uiButton.radius);
-        this.startGame.list[5].setText("[ Replay ]");
-        this.toggleStartGameMenu(true);
+        this.uiScene.toggleMenuView(true);
+        this.uiScene.setMenu('Game Over', `Score: ${this.score} m`, `High Score: ${highScore} m`, 'Play Again', () => this.canJump = true);
         this.score = 0;
         this.spawnRates = {
             items: 0.05,
@@ -255,12 +181,11 @@ export default class GameScene extends Phaser.Scene {
     }
 
     _secondChance() {
-        this.started = false;
-        setTimeout(() => this.started = true, 100);
         this.player.setVelocityY(-1500);
+        this.player.setPosition(this.player.x, this.player.y - 100);
         this.items.shield.value = 0;
 
-        this._circleStarsFX(this.player.x, this.player.y - 100);
+        this._circleStarsFX(this.player.x, this.player.y );
     }
 
     _handleGameOver() {
@@ -282,7 +207,7 @@ export default class GameScene extends Phaser.Scene {
         if (this.input.activePointer.isDown && this.player.body.touching.down && this.ground.y - this.player.y <= 40 && this.canJump) this.player.setVelocityY(-600);
     }
 
-    _handlePlatformRecycle(time, delta) {
+    _updatePlatforms(time, delta) {
         let highestY = Math.min(...this.platforms.map(p => p.y));
 
         this.platforms.forEach((platform, index) => {
@@ -316,23 +241,25 @@ export default class GameScene extends Phaser.Scene {
     _updateScore() {
         const height = Math.round((this.ground.y - this.player.y - 40) / 200);
         this.score = height > this.score ? height : this.score;
-        this.scoreText.setText(`${height} m`);
+        this.uiScene.scoreText.setText(`${height} m`);
     }
 
     _updateItems(time, delta) {
         Object.keys(this.items).forEach(item => {
             if (this.items[item].value > 0) {
-                this.items[item].value -= this.itemDepletionRate * delta;
+                this.items[item].value -= this.itemDepletionRate * (1 / 1000) * delta;
                 if (this.items[item].value <= 0) this.items[item].value = 0;
             }
         });
     }
 
     update(time, delta) {
-        this._handlePlatformRecycle(time, delta);
+        this._updatePlatforms(time, delta);
         this._handleGameOver();
         this._handleMovement();
         this._updateScore();
         this._updateItems(time, delta);
+
+        if (this.started) this.spawnRates.platforms += this.incrementPlatSpawnRate * (1 / 1000) * delta;
     }
 }

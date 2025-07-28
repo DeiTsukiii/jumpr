@@ -12,12 +12,14 @@ export default class PreloadingScene extends Phaser.Scene {
         this.load.on('progress', value => progressBar.clear().fillStyle(0xffffff, 1).fillRect(centerX - 150, centerY + 10, 300 * value, 30));
 
         this.load.setBaseURL('assets/');
-        
-        this.load.bitmapFont('pixelFont', 'pixel-font.png', 'pixel-font.xml');
+
+        this.load.font('Monocraft', 'monocraft.ttf');
         this.load.audio('platformSound', 'platform.mp3');
         this.load.atlas('flares', 'flares.png', 'flares.json');
 
         this.load.image('item-shield', 'items/shield.png');
+
+        this.load.image('pauseIcon', 'pause.png');
 
         this.make.graphics().fillStyle(0xffffff).fillRect(0, 0, 50, 10).generateTexture('whiteRect', 50, 10).destroy();
     }
