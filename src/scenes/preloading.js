@@ -13,11 +13,12 @@ export default class PreloadingScene extends Phaser.Scene {
 
         this.load.setBaseURL('assets/');
 
-        this.load.font('Monocraft', 'monocraft.ttf');
+        this.load.font('Monocraft', 'Monocraft.ttf');
         this.load.audio('platformSound', 'platform.mp3');
         this.load.atlas('flares', 'flares.png', 'flares.json');
 
         this.load.image('item-shield', 'items/shield.png');
+        this.load.image('item-feather', 'items/feather.png');
 
         this.load.image('pauseIcon', 'pause.png');
 

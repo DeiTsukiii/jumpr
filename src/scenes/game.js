@@ -9,7 +9,8 @@ export default class GameScene extends Phaser.Scene {
         this.player;
         this.playerTrail;
         this.items = {
-            shield: { value: 0, duration: 60 }
+            shield: { value: 0, duration: 60 },
+            feather: { value: 0, duration: 20 }
         };
         this.ground;
         this.platforms = [];
@@ -21,7 +22,7 @@ export default class GameScene extends Phaser.Scene {
         this.lastPlatformX = null;
         this.canJump = false;
         this.spawnRates = {
-            items: 0.05,
+            items: 0,
             platforms: 0
         }
         this.incrementPlatSpawnRate = 0.005;
@@ -114,6 +115,7 @@ export default class GameScene extends Phaser.Scene {
         this._createPlayer();
         this._createPlatforms();
         this._setUI();
+        // ajouter la plume
     }
 
     _circleStarsFX(x, y) {

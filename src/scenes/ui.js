@@ -3,7 +3,7 @@ export default class UiScene extends Phaser.Scene {
         super('UiScene');
 
         this.menu;
-        this.font = 'Monospace';
+        this.font = 'Monocraft';
     }
 
     create() {
@@ -63,7 +63,7 @@ export default class UiScene extends Phaser.Scene {
 
         const menuButtonBg = this.add.graphics()
             .fillStyle(0x2E2E2E, 0.7)
-            .fillRoundedRect(-this.uiButton.width / 2, this.uiButton.yPosition - (this.uiButton.height / 2), this.uiButton.width, this.uiButton.height, this.uiButton.radius);
+            .fillRoundedRect(-this.uiButton.width / 2, this.uiButton.yPosition - (this.uiButton.height / 2) + 4, this.uiButton.width, this.uiButton.height, this.uiButton.radius);
 
         const menuButton = this.add.rectangle(0, this.uiButton.yPosition, this.uiButton.width, this.uiButton.height, 0x2E2E2E, 0)
             .setScrollFactor(0)
@@ -76,6 +76,14 @@ export default class UiScene extends Phaser.Scene {
         this.sys.game.events.on(Phaser.Core.Events.BLUR, this.pause, this);
         this.toggleMenuView(true);
         this.setMenu('Jumpr', 'Move mouse to move.', 'Click to jump.', 'Play', () => this.scene.get('GameScene').canJump = true);
+
+        this.itemsIcons = {};
+
+        Object.keys(this.scene.get('GameScene').items).forEach(itemName => this.itemsIcons[itemName] = this.add.image(430, 70, `item-${itemName}`)
+            .setOrigin(1, 0)
+            .setDisplaySize(30, 30)
+            .setScrollFactor(0)
+            .setAlpha(0));
     }
 
     setMenu(title, subtitle, subtitle2, button, callback = () => {}) {
@@ -87,7 +95,7 @@ export default class UiScene extends Phaser.Scene {
         this.uiButton.width = button.length * 17.5 + 20;
         this.menu.getAt(4).clear();
         this.menu.getAt(4).fillStyle(0x2E2E2E, 0.7);
-        this.menu.getAt(4).fillRoundedRect(-this.uiButton.width / 2, this.uiButton.yPosition - (this.uiButton.height / 2), this.uiButton.width, this.uiButton.height, this.uiButton.radius);
+        this.menu.getAt(4).fillRoundedRect(-this.uiButton.width / 2, this.uiButton.yPosition - (this.uiButton.height / 2) + 4, this.uiButton.width, this.uiButton.height, this.uiButton.radius);
 
         this.menu.getAt(5).setText(button);
         this.menu.getAt(6).setSize(this.uiButton.width, this.uiButton.height).off('pointerdown').on('pointerdown', () => {
@@ -117,5 +125,60 @@ export default class UiScene extends Phaser.Scene {
             }, 1000);
         });
         this.scene.pause('GameScene');
+    }
+
+    updateItemsIcons() {
+        const items = this.scene.get('GameScene').items;
+
+        const sortedItems = Object.entries(items)
+            .filter(([_, data]) => data.duration > 0 && data.value > 0)
+            .sort((a, b) => (b[1].value / b[1].duration) - (a[1].value / a[1].duration));
+
+        const sortedKeys = sortedItems.map(([key]) => key); // pour les index
+
+        Object.keys(this.itemsIcons).forEach(itemName => {
+            const itemData = items[itemName];
+            const icon = this.itemsIcons[itemName];
+
+            if (!itemData || itemData.value <= 0) {
+                icon.y = 70;
+                this.tweens.killTweensOf(icon); // stoppe le clignotement s'il y en avait
+                icon.setAlpha(0);
+                return;
+            }
+
+            const targetY = 30 + 40 * (sortedKeys.indexOf(itemName) + 1);
+            if (!icon.isBlinking) icon.setAlpha(itemData.value / itemData.duration);
+
+            if (icon.y !== targetY) {
+                this.tweens.add({
+                    targets: icon,
+                    y: targetY,
+                    duration: 300,
+                    ease: 'Power2'
+                });
+            }
+
+            if (itemData.value <= 5 && !icon.isBlinking) {
+                icon.isBlinking = true;
+
+                this.tweens.add({
+                    targets: icon,
+                    alpha: { from: 1, to: itemData.value / itemData.duration },
+                    duration: 500,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
+                });
+            } else if (itemData.value > 5 && icon.isBlinking) {
+                this.tweens.killTweensOf(icon);
+                icon.setAlpha(itemData.value / itemData.duration);
+                icon.isBlinking = false;
+            }
+        });
+    }
+
+    update() {
+        this.updateItemsIcons();
     }
 }
