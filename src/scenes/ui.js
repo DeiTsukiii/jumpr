@@ -3,10 +3,11 @@ export default class UiScene extends Phaser.Scene {
         super('UiScene');
 
         this.menu;
+        this.font = 'Monospace';
     }
 
     create() {
-        this.scoreText = this.add.text(20, 20, '0', { font: '30px Monocraft', fill: '#fff' }).setDepth(11).setScrollFactor(0);
+        this.scoreText = this.add.text(20, 20, '0', { font: '30px ' + this.font, fill: '#fff' }).setDepth(11).setScrollFactor(0);
         document.getElementById('debugButton').style.display = 'block';
 
         this.pauseButton = this.add.image(430, 20, 'pauseIcon')
@@ -45,9 +46,9 @@ export default class UiScene extends Phaser.Scene {
             .setOrigin(0.5)
             .setStrokeStyle(2, 0xFFFFFF);
 
-        const menuTitle = this.add.text(0, -60, "Title", { font: '40px Monocraft', fill: '#fff' }).setOrigin(0.5);
-        const menuSubTitle = this.add.text(0, -15, "Subtitle", { font: '20px Monocraft', fill: '#fff' }).setOrigin(0.5);
-        const menuSubTitle2 = this.add.text(0, 15, "Subtitle 2", { font: '20px Monocraft', fill: '#fff' }).setOrigin(0.5);
+        const menuTitle = this.add.text(0, -60, "Title", { font: '40px ' + this.font, fill: '#fff' }).setOrigin(0.5);
+        const menuSubTitle = this.add.text(0, -15, "Subtitle", { font: '20px ' + this.font, fill: '#fff' }).setOrigin(0.5);
+        const menuSubTitle2 = this.add.text(0, 15, "Subtitle 2", { font: '20px ' + this.font, fill: '#fff' }).setOrigin(0.5);
 
         this.uiButton = {
             yPosition: 60,
@@ -56,13 +57,13 @@ export default class UiScene extends Phaser.Scene {
             radius: 10,
         }
 
-        const menuButtonText = this.add.text(0, this.uiButton.yPosition, "Button", { font: '25px Monocraft', fill: '#fff' })
+        const menuButtonText = this.add.text(0, this.uiButton.yPosition, "Button", { font: '25px ' + this.font, fill: '#fff' })
             .setOrigin(0.5)
             .setTint(0xFFFFFF);
 
         const menuButtonBg = this.add.graphics()
             .fillStyle(0x2E2E2E, 0.7)
-            .fillRoundedRect(-this.uiButton.width / 2, this.uiButton.yPosition - (this.uiButton.height / 2) + 4, this.uiButton.width, this.uiButton.height, this.uiButton.radius);
+            .fillRoundedRect(-this.uiButton.width / 2, this.uiButton.yPosition - (this.uiButton.height / 2), this.uiButton.width, this.uiButton.height, this.uiButton.radius);
 
         const menuButton = this.add.rectangle(0, this.uiButton.yPosition, this.uiButton.width, this.uiButton.height, 0x2E2E2E, 0)
             .setScrollFactor(0)
@@ -86,7 +87,7 @@ export default class UiScene extends Phaser.Scene {
         this.uiButton.width = button.length * 17.5 + 20;
         this.menu.getAt(4).clear();
         this.menu.getAt(4).fillStyle(0x2E2E2E, 0.7);
-        this.menu.getAt(4).fillRoundedRect(-this.uiButton.width / 2, this.uiButton.yPosition - (this.uiButton.height / 2) + 4, this.uiButton.width, this.uiButton.height, this.uiButton.radius);
+        this.menu.getAt(4).fillRoundedRect(-this.uiButton.width / 2, this.uiButton.yPosition - (this.uiButton.height / 2), this.uiButton.width, this.uiButton.height, this.uiButton.radius);
 
         this.menu.getAt(5).setText(button);
         this.menu.getAt(6).setSize(this.uiButton.width, this.uiButton.height).off('pointerdown').on('pointerdown', () => {
@@ -101,7 +102,7 @@ export default class UiScene extends Phaser.Scene {
         this.scene.get('GameScene').canJump = false;
         this.setMenu('Paused', 'Game is', 'paused', 'Resume', () => {
             let i = 3;
-            const text = this.add.text(this.sys.game.config.width / 2, this.sys.game.config.height / 2, '3', { font: '100px Monocraft', fill: '#fff' }).setOrigin(0.5).setDepth(11).setScrollFactor(0);
+            const text = this.add.text(this.sys.game.config.width / 2, this.sys.game.config.height / 2, '3', { font: '100px ' + this.font, fill: '#fff' }).setOrigin(0.5).setDepth(11).setScrollFactor(0);
             const interval = setInterval(() => {
                 if (i <= 0) {
                     clearInterval(interval);

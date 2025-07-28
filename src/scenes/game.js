@@ -168,7 +168,7 @@ export default class GameScene extends Phaser.Scene {
         this.canJump = false;
         this.started = false;
         this.uiScene.toggleMenuView(true);
-        this.uiScene.setMenu('Game Over', `Score: ${this.score} m`, `High Score: ${highScore} m`, 'Play Again', () => this.canJump = true);
+        this.uiScene.setMenu('Game Over', `Score: ${this.score}m`, `High Score: ${highScore}m`, 'Play Again', () => this.canJump = true);
         this.score = 0;
         this.spawnRates = {
             items: 0.05,
@@ -241,7 +241,7 @@ export default class GameScene extends Phaser.Scene {
     _updateScore() {
         const height = Math.round((this.ground.y - this.player.y - 40) / 200);
         this.score = height > this.score ? height : this.score;
-        this.uiScene.scoreText.setText(`${height} m`);
+        this.uiScene.scoreText.setText(`${height}m`);
     }
 
     _updateItems(time, delta) {
