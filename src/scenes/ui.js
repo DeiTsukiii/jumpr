@@ -99,9 +99,20 @@ export default class UiScene extends Phaser.Scene {
         this.toggleMenuView(true);
         this.scene.get('GameScene').canJump = false;
         this.setMenu('Paused', 'Game is', 'paused', 'Resume', () => {
-            this.scene.resume('GameScene');
-            this.scene.get('GameScene').canJump = true;
-            this.toggleMenuView(false);
+            let i = 3;
+            const text = this.add.text(this.sys.game.config.width / 2, this.sys.game.config.height / 2, '3', { font: '100px Monocraft', fill: '#fff' }).setOrigin(0.5).setDepth(11).setScrollFactor(0);
+            const interval = setInterval(() => {
+                if (i <= 0) {
+                    clearInterval(interval);
+                    this.scene.resume('GameScene');
+                    this.scene.get('GameScene').canJump = true;
+                    this.toggleMenuView(false);
+                    text.destroy();
+                    return;
+                }
+                i--;
+                text.setText(i === 0 ? 'Go!' : i);
+            }, 1000);
         });
         this.scene.pause('GameScene');
     }
