@@ -19,13 +19,15 @@ export default class GameScene extends Phaser.Scene {
         this.uiScene;
         this.stars = [];
         this.minDistanceX = 100;
-        this.lastPlatformX = null;
         this.canJump = false;
         this.spawnRates = {
             items: 0.05,
             platforms: 0
         }
+        this.platformSpacing = 90;
+        this.maxPlatformSpacing = 190;
         this.incrementPlatSpawnRate = 0.005;
+        this.incrementPlatSpacing = 1;
         this.itemDepletionRate = 1;
     }
 
@@ -91,10 +93,10 @@ export default class GameScene extends Phaser.Scene {
     }
 
     _createPlatforms() {
-        const nbPlatforms = 10;
+        const nbPlatforms = 20;
         for (let i = 0; i < nbPlatforms; i++) {
             let x;
-            const y = 550 - (i * 160);
+            const y = 550 - (i * this.platformSpacing);
 
             x = Phaser.Math.Between(20, 430);
 
@@ -209,8 +211,6 @@ export default class GameScene extends Phaser.Scene {
     }
 
     _updatePlatforms(time, delta) {
-        let highestY = Math.min(...this.platforms.map(p => p.y));
-
         this.platforms.forEach((platform, index) => {
             if (!platform.body) return;
             platform.update(time, delta);
@@ -222,11 +222,9 @@ export default class GameScene extends Phaser.Scene {
                     alpha: 0,
                     duration: 200,
                     onComplete: () => {
+                        const highestY = Math.min(...this.platforms.map(p => p.y));
                         const newX = Phaser.Math.Between(20, 430);
-                        const newY = highestY - 160;
-
-                        highestY = Math.min(highestY, newY);
-                        this.lastPlatformX = newX;
+                        const newY = highestY - this.platformSpacing;
 
                         platform.destroy();
                         let possiblePlatforms = [BasicPlatform];
@@ -262,5 +260,6 @@ export default class GameScene extends Phaser.Scene {
         this._updateItems(time, delta);
 
         if (this.started) this.spawnRates.platforms += this.incrementPlatSpawnRate * (1 / 1000) * delta;
+        if (this.started) this.platformSpacing += this.incrementPlatSpacing * (1 / 1000) * delta;
     }
 }
