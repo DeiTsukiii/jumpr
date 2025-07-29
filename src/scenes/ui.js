@@ -74,8 +74,8 @@ export default class UiScene extends Phaser.Scene {
         this.menu.add([bg, menuTitle, menuSubTitle, menuSubTitle2, menuButtonBg, menuButtonText, menuButton]);
 
         this.sys.game.events.on(Phaser.Core.Events.BLUR, this.pause, this);
-        this.toggleMenuView(true);
-        this.setMenu('Jumpr', 'Move mouse to move.', 'Click to jump.', 'Play', () => this.scene.get('GameScene').canJump = true);
+        // this.toggleMenuView(true);
+        // this.setMenu('Jumpr', 'Move mouse to move.', 'Click to jump.', 'Play', () => this.scene.get('GameScene').canJump = true);
 
         this.itemsIcons = {};
 
@@ -102,6 +102,7 @@ export default class UiScene extends Phaser.Scene {
             this.toggleMenuView(false);
             setTimeout(callback, 100);
         });
+        this.toggleMenuView(true);
     }
 
     pause() {
@@ -134,7 +135,7 @@ export default class UiScene extends Phaser.Scene {
             .filter(([_, data]) => data.duration > 0 && data.value > 0)
             .sort((a, b) => (b[1].value / b[1].duration) - (a[1].value / a[1].duration));
 
-        const sortedKeys = sortedItems.map(([key]) => key); // pour les index
+        const sortedKeys = sortedItems.map(([key]) => key);
 
         Object.keys(this.itemsIcons).forEach(itemName => {
             const itemData = items[itemName];
@@ -142,7 +143,7 @@ export default class UiScene extends Phaser.Scene {
 
             if (!itemData || itemData.value <= 0) {
                 icon.y = 70;
-                this.tweens.killTweensOf(icon); // stoppe le clignotement s'il y en avait
+                this.tweens.killTweensOf(icon);
                 icon.setAlpha(0);
                 return;
             }

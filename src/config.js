@@ -1,6 +1,7 @@
 import PreloadingScene from "./scenes/preloading.js";
 import GameScene from "./scenes/game.js";
 import UiScene from "./scenes/ui.js";
+import HomeScene from "./scenes/home.js";
 
 const urlParams = new URLSearchParams(window.location.search);
 const debug = urlParams.get('debug') === 'true';
@@ -19,7 +20,7 @@ export const CONFIG = {
     input: {
         activePointers: 3,
     },
-    scene: [PreloadingScene, GameScene, UiScene],
+    scene: [PreloadingScene, GameScene, UiScene, HomeScene],
     physics: {
         default: 'arcade',
         arcade: {

@@ -13,9 +13,9 @@ export default class BasicPlatform extends Phaser.GameObjects.Image {
         this.hitSound = 'platformSound';
 
         if (Math.random() < this.scene.spawnRates.items) {
-            const items = ['shield', 'feather'];
+            const items = [...Object.keys(this.scene.items), 'mystery'];
             const randomItem = Phaser.Utils.Array.GetRandom(items);
-            this.item = this.scene.add.image(x, y - 17, `item-${randomItem}`).setDisplaySize(25, 25).setOrigin(0.5, 0.5);
+            this.setItem(randomItem);
         }
         this.fallRate = 30;
 
@@ -37,10 +37,11 @@ export default class BasicPlatform extends Phaser.GameObjects.Image {
         this.item.alpha = this.alpha;
     }
 
-    claimItem(player) {
+    claimItem() {
         if (!this.item || !this.scene) return;
         this.scene._circleStarsFX(this.item.x, this.item.y);
-        this.scene._getItem(this.item.texture.key.replace('item-', ''));
+        const item = this.item.texture.key.replace('item-', '');
+        this.scene._getItem(item === 'mystery' ? Phaser.Utils.Array.GetRandom(Object.keys(this.scene.items)) : item);
         this.item.destroy();
         this.item = null;
     }
@@ -48,5 +49,9 @@ export default class BasicPlatform extends Phaser.GameObjects.Image {
     destroy() {
         if (this.item) this.item.destroy();
         super.destroy();
+    }
+
+    setItem(item) {
+        this.item = this.scene.add.image(this.x, this.y - 17, `item-${item}`).setDisplaySize(25, 25).setOrigin(0.5, 0.5);
     }
 }

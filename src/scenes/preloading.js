@@ -19,13 +19,15 @@ export default class PreloadingScene extends Phaser.Scene {
 
         this.load.image('item-shield', 'items/shield.png');
         this.load.image('item-feather', 'items/feather.png');
+        this.load.image('item-mystery', 'items/mystery.png');
 
         this.load.image('pauseIcon', 'pause.png');
+        this.load.image('logo', 'logo.png');
 
         this.make.graphics().fillStyle(0xffffff).fillRect(0, 0, 50, 10).generateTexture('whiteRect', 50, 10).destroy();
     }
 
     create() {
-        this.scene.start('GameScene');
+        this.scene.start('HomeScene');
     }
 }

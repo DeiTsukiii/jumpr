@@ -19,7 +19,7 @@ export default class GameScene extends Phaser.Scene {
         this.uiScene;
         this.stars = [];
         this.minDistanceX = 100;
-        this.canJump = false;
+        this.canJump = true;
         this.spawnRates = {
             items: 0.05,
             platforms: 0
@@ -170,14 +170,13 @@ export default class GameScene extends Phaser.Scene {
         this.playerTrail.destroy();
         this.canJump = false;
         this.started = false;
-        this.uiScene.toggleMenuView(true);
         this.uiScene.setMenu('Game Over', `Score: ${this.score}m`, `High Score: ${highScore}m`, 'Play Again', () => this.canJump = true);
         this.score = 0;
         this.spawnRates = {
             items: 0.05,
             platforms: 0
         }
-
+        this.platformSpacing = 90;
         mouseX = playerX;
         this._createPlayer(playerX);
         this._createPlatforms();
@@ -260,6 +259,7 @@ export default class GameScene extends Phaser.Scene {
         this._updateItems(time, delta);
 
         if (this.started) this.spawnRates.platforms += this.incrementPlatSpawnRate * (1 / 1000) * delta;
-        if (this.started) this.platformSpacing += this.incrementPlatSpacing * (1 / 1000) * delta;
+        if (this.started && this.platformSpacing < this.maxPlatformSpacing) this.platformSpacing += this.incrementPlatSpacing * (1 / 1000) * delta;
+        else if (this.platformSpacing > this.maxPlatformSpacing) this.platformSpacing = this.maxPlatformSpacing;
     }
 }
