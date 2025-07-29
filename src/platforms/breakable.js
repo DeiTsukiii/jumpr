@@ -5,12 +5,10 @@ export default class BreakablePlatform extends BasicPlatform {
         super(scene, x, y);
 
         this.setTint(0xff0000);
+        this.touchs = 0;
     }
 
-    onHit(player) {
-        super.onHit(player);
-
-        if (!this.canTouch || !this.active) return;
+    break() {
         this.scene.tweens.add({
             targets: this,
             y: this.y + 10,
@@ -22,5 +20,15 @@ export default class BreakablePlatform extends BasicPlatform {
                 this.canTouch = false;
             }
         });
+    }
+
+    onHit(player) {
+        super.onHit(player);
+
+        if (!this.canTouch || !this.active) return;
+        this.touchs++;
+        const haveFeather = this.scene.items.feather.value > 0;
+        if (haveFeather && this.touchs >= 3) this.break();
+        else if (!haveFeather && this.touchs >= 1) this.break();
     }
 }

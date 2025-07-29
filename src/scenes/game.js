@@ -115,7 +115,6 @@ export default class GameScene extends Phaser.Scene {
         this._createPlayer();
         this._createPlatforms();
         this._setUI();
-        // ajouter la plume
     }
 
     _circleStarsFX(x, y) {
