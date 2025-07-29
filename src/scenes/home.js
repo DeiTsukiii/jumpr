@@ -72,6 +72,7 @@ export default class HomeScene extends Phaser.Scene {
         
         this.input.off('pointerdown').on('pointerdown', () => {
             this.scene.start('GameScene');
+            this.scene.stop('HomeScene');
         });
     }
 }
