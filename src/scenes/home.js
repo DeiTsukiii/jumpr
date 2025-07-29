@@ -69,5 +69,9 @@ export default class HomeScene extends Phaser.Scene {
             follow: player,
             followOffset: { y: -20, x: 0 },
         });
+        
+        this.input.off('pointerdown').on('pointerdown', () => {
+            this.scene.start('GameScene');
+        });
     }
 }
