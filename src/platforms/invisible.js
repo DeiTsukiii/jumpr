@@ -11,7 +11,6 @@ export default class InvisiblePlatform extends BasicPlatform {
     }
 
     reveal() {
-        console.log('revealing');
         if (!this.body) return;
         this.scene.tweens.add({
             targets: this,

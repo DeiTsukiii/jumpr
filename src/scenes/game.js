@@ -30,21 +30,17 @@ export default class GameScene extends Phaser.Scene {
         this.incrementPlatSpacing = 1;
         this.itemDepletionRate = 1;
     }
+    
+    init(data) {
+        this.stars = data.stars || [];
+    }
 
     _generateBackground() {
-        for (let i = 0; i < window.innerHeight / 5; i++) {
-            const x = Phaser.Math.Between(0, 450);
-            const y = Phaser.Math.Between(0, window.innerHeight);
-
-            const size = Phaser.Math.Between(8, 10);
-            const star = this.add.image(x, y, 'flares', 'white')
-                .setDisplaySize(size, size)
-                .setScrollFactor(0)
-                .setDepth(-1)
-                .setAlpha(Phaser.Math.FloatBetween(0.3, 0.8));
-
-            this.stars.push(star);
-        }
+        this.stars.forEach(starData => this.add.image(starData.x, starData.y, 'flares', 'white')
+            .setDisplaySize(starData.size, starData.size)
+            .setScrollFactor(0)
+            .setDepth(-1)
+            .setAlpha(starData.alpha));
     }
 
     _createPlayer(playerX = 225, playerY = 660) {
