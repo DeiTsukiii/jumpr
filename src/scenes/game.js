@@ -22,7 +22,7 @@ export default class GameScene extends Phaser.Scene {
         this.lastPlatformX = null;
         this.canJump = false;
         this.spawnRates = {
-            items: 0,
+            items: 0.05,
             platforms: 0
         }
         this.incrementPlatSpawnRate = 0.005;
