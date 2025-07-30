@@ -3,18 +3,7 @@ export default class HomeScene extends Phaser.Scene {
         super('HomeScene');
     }
 
-    create() {
-        this.font = 'Monocraft';
-        this.center = {
-            x: this.sys.game.config.width / 2,
-            y: this.sys.game.config.height / 2
-        };
-        this.stars = [];
-
-        this.setMainScreen();
-    }
-
-    createBg() {
+    _createBg() {
         for (let i = 0; i < window.innerHeight / 5; i++) {
             const x = Phaser.Math.Between(0, 450);
             const y = Phaser.Math.Between(0, window.innerHeight);
@@ -30,8 +19,44 @@ export default class HomeScene extends Phaser.Scene {
             .setAlpha(starData.alpha));
     }
 
-    setMainScreen() {
-        this.createBg();
+    _createPlayer() {
+        this.player = this.physics.add.sprite(this.center.x, 700 - this.center.y - 50, 'whiteRect')
+            .setDisplaySize(40, 40)
+            .setBounce(0)
+            .setOrigin(0.5, 1)
+            .setCollideWorldBounds(true)
+            .setDepth(10)
+            .setVelocityY(400);
+        this.player.body.moves = false;
+        this.cameras.main.startFollow(this.player, false);
+        this.cameras.main.setBounds(0, -99300, 450, 100000);
+        this.physics.world.setBounds(0, -99300, 450, 100000);
+
+        this.add.particles(0, 0, 'flares', {
+            frame: 'white',
+            scale: { start: 0.2, end: 0 },
+            alpha: { start: 1, end: 0 },
+            lifespan: 1000,
+            blendMode: 'ADD',
+            follow: this.player,
+            followOffset: { y: -20, x: 0 },
+            speedY: -400,
+            speedX: { min: -2, max: 2 },
+        });
+    }
+
+    _createGround() {
+        const ground = this.physics.add.staticImage(225, 700, 'whiteRect')
+            .setDisplaySize(450, 40)
+            .setOrigin(0.5, 1)
+            .refreshBody();
+        this.physics.add.collider(this.player, ground, () => {
+            this.scene.start('GameScene', { stars: this.stars });
+            this.scene.stop('HomeScene');
+        }, null, this);
+    }
+
+    _setMenu() {
         const menu = this.add.container(this.center.x, this.center.y)
             .setDepth(100)
             .setScrollFactor(0);
@@ -46,38 +71,28 @@ export default class HomeScene extends Phaser.Scene {
             .setOrigin(0.5)
             .setAlpha(0.7);
 
-        menu.add([mainClicker, tapToPlay]);
+        const settingIcon = this.add.image(215, 10-this.center.y, 'settingsIcon')
+            .setOrigin(1, 0)
+            .setDepth(11)
+            .setScrollFactor(0)
+            .setDisplaySize(30, 30)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {});
 
-        this.player = this.physics.add.sprite(this.center.x, 700 - this.center.y - 50, 'whiteRect')
-            .setDisplaySize(40, 40)
-            .setBounce(0)
-            .setOrigin(0.5, 1)
-            .setCollideWorldBounds(true)
-            .setDepth(10)
-            .setVelocityY(400);
-        this.player.body.moves = false;
-        this.cameras.main.startFollow(this.player, false);
-        this.cameras.main.setBounds(0, -99300, 450, 100000);
-        this.physics.world.setBounds(0, -99300, 450, 100000);
+        menu.add([mainClicker, tapToPlay, settingIcon]);
+    }
 
-        const ground = this.physics.add.staticImage(225, 700, 'whiteRect')
-            .setDisplaySize(450, 40)
-            .setOrigin(0.5, 1)
-            .refreshBody();
-        this.physics.add.collider(this.player, ground, () => {
-            this.scene.start('GameScene', { stars: this.stars });
-            this.scene.stop('HomeScene');
-        }, null, this);
-        this.playerTrail = this.add.particles(0, 0, 'flares', {
-            frame: 'white',
-            scale: { start: 0.2, end: 0 },
-            alpha: { start: 1, end: 0 },
-            lifespan: 1000,
-            blendMode: 'ADD',
-            follow: this.player,
-            followOffset: { y: -20, x: 0 },
-            speedY: -400,
-            speedX: { min: -1, max: 1 },
-        });
+    create() {
+        this.font = 'Monocraft';
+        this.center = {
+            x: this.sys.game.config.width / 2,
+            y: this.sys.game.config.height / 2
+        };
+        this.stars = [];
+
+        this._createBg();
+        this._createPlayer();
+        this._createGround();
+        this._setMenu();
     }
 }

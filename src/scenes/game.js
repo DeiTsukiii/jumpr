@@ -29,6 +29,7 @@ export default class GameScene extends Phaser.Scene {
         this.incrementPlatSpawnRate = 0.005;
         this.incrementPlatSpacing = 1;
         this.itemDepletionRate = 1;
+        this.multiplier = 1;
     }
     
     init(data) {
@@ -233,9 +234,9 @@ export default class GameScene extends Phaser.Scene {
     }
 
     _updateScore() {
-        const height = Math.round((this.ground.y - this.player.y - 40) / 200);
+        const height = Math.round((this.ground.y - this.player.y - 40) / 200) * this.multiplier;
         this.score = height > this.score ? height : this.score;
-        this.uiScene.scoreText.setText(`${height}m`);
+        this.uiScene.scoreText.setText(`${this.score}m`);
     }
 
     _updateItems(time, delta) {

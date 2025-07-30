@@ -23,6 +23,7 @@ export default class PreloadingScene extends Phaser.Scene {
 
         this.load.image('pauseIcon', 'pause.png');
         this.load.image('logo', 'logo.png');
+        this.load.image('settingsIcon', 'settings.png');
 
         this.make.graphics().fillStyle(0xffffff).fillRect(0, 0, 50, 10).generateTexture('whiteRect', 50, 10).destroy();
     }
