@@ -5,31 +5,6 @@ let mouseX = 225;
 export default class GameScene extends Phaser.Scene {
     constructor() {
         super('GameScene');
-
-        this.player;
-        this.playerTrail;
-        this.items = {
-            shield: { value: 0, duration: 60 },
-            feather: { value: 0, duration: 20 }
-        };
-        this.ground;
-        this.platforms = [];
-        this.started = false;
-        this.score = 0;
-        this.uiScene;
-        this.stars = [];
-        this.minDistanceX = 100;
-        this.canJump = true;
-        this.spawnRates = {
-            items: 0.05,
-            platforms: 0
-        }
-        this.platformSpacing = 90;
-        this.maxPlatformSpacing = 190;
-        this.incrementPlatSpawnRate = 0.005;
-        this.incrementPlatSpacing = 1;
-        this.itemDepletionRate = 1;
-        this.multiplier = 1;
     }
     
     init(data) {
@@ -100,11 +75,19 @@ export default class GameScene extends Phaser.Scene {
 
     _createPlatforms() {
         const nbPlatforms = 20;
+        let lastX;
         for (let i = 0; i < nbPlatforms; i++) {
             let x;
-            const y = 550 - (i * this.platformSpacing);
+            const y = 550 - (i * this.platformSpacing.y);
 
-            x = Phaser.Math.Between(20, 430);
+            if (!lastX) x = Phaser.Math.Between(20, 430);
+            else {
+                do {
+                    x = Phaser.Math.Between(20, 430);
+                } while (Math.abs(x - lastX) < this.platformSpacing.x);
+            }
+
+            lastX = x;
 
             const platform = new BasicPlatform(this, x, y);
             this.platforms.push(platform);
@@ -117,6 +100,31 @@ export default class GameScene extends Phaser.Scene {
     }
 
     create() {
+        this.player;
+        this.playerTrail;
+        this.items = {
+            shield: { value: 0, duration: 60 },
+            feather: { value: 0, duration: 20 }
+        };
+        this.ground;
+        this.platforms = [];
+        this.started = false;
+        this.score = 0;
+        this.uiScene;
+        this.minDistanceX = 100;
+        this.canJump = true;
+        this.spawnRates = {
+            items: 0.05,
+            platforms: 0
+        }
+        this.platformSpacing = { x: 200, y: 90 };
+        this.maxPlatformSpacing = 190;
+        this.incrementPlatSpawnRate = 0.005;
+        this.incrementPlatSpacing = 1;
+        this.itemDepletionRate = 1;
+        this.multiplier = 1;
+        mouseX = 225;
+
         this.input.on('pointermove', pointer => mouseX = pointer.x);
         this._generateBackground();
         this._createWorld();
@@ -182,7 +190,7 @@ export default class GameScene extends Phaser.Scene {
             items: 0.05,
             platforms: 0
         }
-        this.platformSpacing = 90;
+        this.platformSpacing = { x: 200, y: 90 };
         mouseX = playerX;
         this._createPlayer(playerX);
         this._createPlatforms();
@@ -227,9 +235,13 @@ export default class GameScene extends Phaser.Scene {
                     alpha: 0,
                     duration: 200,
                     onComplete: () => {
-                        const highestY = Math.min(...this.platforms.map(p => p.y));
-                        const newX = Phaser.Math.Between(20, 430);
-                        const newY = highestY - this.platformSpacing;
+                        const highest = this.platforms.find(p => p.y === Math.min(...this.platforms.map(p => p.y)));
+                        let newX;
+                        do {
+                            newX = Phaser.Math.Between(20, 430);
+                        } while (Math.abs(newX - highest.x) < this.platformSpacing.x);
+
+                        const newY = highest.y - this.platformSpacing.y;
 
                         platform.destroy();
                         let possiblePlatforms = [BasicPlatform];
@@ -265,7 +277,10 @@ export default class GameScene extends Phaser.Scene {
         this._updateItems(time, delta);
 
         if (this.started) this.spawnRates.platforms += this.incrementPlatSpawnRate * (1 / 1000) * delta;
-        if (this.started && this.platformSpacing < this.maxPlatformSpacing) this.platformSpacing += this.incrementPlatSpacing * (1 / 1000) * delta;
-        else if (this.platformSpacing > this.maxPlatformSpacing) this.platformSpacing = this.maxPlatformSpacing;
+        if (this.started && this.platformSpacing.y < this.maxPlatformSpacing) this.platformSpacing.y += this.incrementPlatSpacing * (1 / 1000) * delta;
+        else if (this.platformSpacing.y > this.maxPlatformSpacing) this.platformSpacing.y = this.maxPlatformSpacing;
+
+        if (this.started && this.platformSpacing.x >= 0) this.platformSpacing.x -= this.incrementPlatSpacing * (1 / 1000) * delta;
+        else if (this.platformSpacing.x < 0) this.platformSpacing.x = 0;
     }
 }

@@ -2,9 +2,13 @@ export default class HomeScene extends Phaser.Scene {
     constructor() {
         super('HomeScene');
     }
+    
+    init(data) {
+        this.stars = data.stars || [];
+    }
 
     _createBg() {
-        for (let i = 0; i < window.innerHeight / 5; i++) {
+        if (this.stars.length === 0) for (let i = 0; i < window.innerHeight / 5; i++) {
             const x = Phaser.Math.Between(0, 450);
             const y = Phaser.Math.Between(0, window.innerHeight);
             const alpha = Phaser.Math.FloatBetween(0.3, 0.8);
@@ -419,16 +423,16 @@ export default class HomeScene extends Phaser.Scene {
             .setOrigin(0, 0.5);
 
         const { settingIcon, multiplier, gem, money } = this._setTopBar();
-        const { shop, me, missions } = this._setDownBar();
+        // const { shop, me, missions } = this._setDownBar();
 
         menu.add([
             mainClicker, tapToPlay, settingIcon, highScore,
             multiplier.icon, multiplier.text,
             gem.icon, gem.text,
             money.icon, money.text,
-            shop.bg, shop.iconStroke, shop.icon, shop.text,
-            me.bg, me.iconStroke, me.icon, me.text,
-            missions.bg, missions.iconStroke, missions.icon, missions.text
+            // shop.bg, shop.iconStroke, shop.icon, shop.text,
+            // me.bg, me.iconStroke, me.icon, me.text,
+            // missions.bg, missions.iconStroke, missions.icon, missions.text
         ]);
     }
 
@@ -438,7 +442,6 @@ export default class HomeScene extends Phaser.Scene {
             x: this.sys.game.config.width / 2,
             y: this.sys.game.config.height / 2
         };
-        this.stars = [];
 
         this._createBg();
         this._createPlayer();

@@ -8,7 +8,6 @@ export default class UiScene extends Phaser.Scene {
 
     create() {
         this.scoreText = this.add.text(20, 20, '0', { font: '30px ' + this.font, fill: '#fff' }).setDepth(11).setScrollFactor(0);
-        document.getElementById('debugButton').style.display = 'block';
 
         this.pauseButton = this.add.image(430, 20, 'pauseIcon')
             .setOrigin(1, 0)
@@ -42,17 +41,24 @@ export default class UiScene extends Phaser.Scene {
             });
         }
 
-        const bg = this.add.rectangle(0, 0, 300, 200, 0x000000, 0.8)
+        const bg = this.add.rectangle(0, 0, 300, 250, 0x000000, 0.8)
             .setOrigin(0.5)
             .setStrokeStyle(2, 0xFFFFFF);
 
-        const menuTitle = this.add.text(0, -60, "Title", { font: '40px ' + this.font, fill: '#fff' }).setOrigin(0.5);
-        const menuSubTitle = this.add.text(0, -15, "Subtitle", { font: '20px ' + this.font, fill: '#fff' }).setOrigin(0.5);
-        const menuSubTitle2 = this.add.text(0, 15, "Subtitle 2", { font: '20px ' + this.font, fill: '#fff' }).setOrigin(0.5);
+        const menuTitle = this.add.text(0, -95, "Title", { font: '40px ' + this.font, fill: '#fff' }).setOrigin(0.5);
+        const menuSubTitle = this.add.text(0, -50, "Subtitle", { font: '20px ' + this.font, fill: '#fff' }).setOrigin(0.5);
+        const menuSubTitle2 = this.add.text(0, -20, "Subtitle 2", { font: '20px ' + this.font, fill: '#fff' }).setOrigin(0.5);
 
         this.uiButton = {
-            yPosition: 60,
+            yPosition: 25,
             width: 125,
+            height: 45,
+            radius: 10,
+        }
+
+        const quitButton = {
+            yPosition: 80,
+            width: 90,
             height: 45,
             radius: 10,
         }
@@ -71,11 +77,33 @@ export default class UiScene extends Phaser.Scene {
             .setInteractive({ useHandCursor: true })
             .on('pointerdown', () => this.toggleMenuView(false));
 
-        this.menu.add([bg, menuTitle, menuSubTitle, menuSubTitle2, menuButtonBg, menuButtonText, menuButton]);
+        const quitButtonText = this.add.text(0, quitButton.yPosition, "Quit", { font: '25px ' + this.font, fill: '#fff' })
+            .setOrigin(0.5)
+            .setTint(0xFFFFFF);
+
+        const quitButtonBg = this.add.graphics()
+            .fillStyle(0x2E2E2E, 0.7)
+            .fillRoundedRect(-quitButton.width / 2, quitButton.yPosition - (quitButton.height / 2) + 4, quitButton.width, quitButton.height, quitButton.radius);
+
+        const quitButtonBtn = this.add.rectangle(0, quitButton.yPosition, quitButton.width, quitButton.height, 0x2E2E2E, 0)
+            .setScrollFactor(0)
+            .setOrigin(0.5)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {
+                const stars = this.scene.get('GameScene').stars;
+                this.scene.start('HomeScene', { stars });
+                this.scene.stop('GameScene');
+                this.sys.game.events.off(Phaser.Core.Events.BLUR);
+                this.scene.stop('UiScene');
+            });
+
+        this.menu.add([
+            bg, menuTitle, menuSubTitle, menuSubTitle2,
+            menuButtonBg, menuButtonText, menuButton,
+            quitButtonBg, quitButtonText, quitButtonBtn
+        ]);
 
         this.sys.game.events.on(Phaser.Core.Events.BLUR, this.pause, this);
-        // this.toggleMenuView(true);
-        // this.setMenu('Jumpr', 'Move mouse to move.', 'Click to jump.', 'Play', () => this.scene.get('GameScene').canJump = true);
 
         this.itemsIcons = {};
 
