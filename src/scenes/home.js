@@ -227,7 +227,6 @@ export default class HomeScene extends Phaser.Scene {
             settings.add([label, ...inputs]);
         });
 
-        // Pour accès externe si besoin
         settings.options = options;
 
         return settings;
@@ -254,13 +253,18 @@ export default class HomeScene extends Phaser.Scene {
                 });
             });
 
+        let multiplierScore = localStorage.getItem('JumprMultiplier');
+        if (!multiplierScore) {
+            multiplierScore = 1;
+            localStorage.setItem('JumprMultiplier', multiplierScore);
+        }
         const multiplier = {
             icon: this.add.image(165, topBarY, 'starIcon')
                 .setOrigin(1, 0)
                 .setDepth(11)
                 .setScrollFactor(0)
                 .setDisplaySize(30, 30),
-            text: this.add.text(135, topBarY, `x1`, { font: '20px ' + this.font, fill: '#fff' })
+            text: this.add.text(135, topBarY, `x${multiplierScore}`, { font: '20px ' + this.font, fill: '#fff' })
                 .setOrigin(1, 0)
                 .setDepth(11)
                 .setScrollFactor(0)

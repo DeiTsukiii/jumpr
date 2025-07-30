@@ -122,7 +122,7 @@ export default class GameScene extends Phaser.Scene {
         this.incrementPlatSpawnRate = 0.005;
         this.incrementPlatSpacing = 1;
         this.itemDepletionRate = 1;
-        this.multiplier = 1;
+        this.multiplier = localStorage.getItem('JumprMultiplier') ? parseInt(localStorage.getItem('JumprMultiplier')) : 1;
         mouseX = 225;
 
         this.input.on('pointermove', pointer => mouseX = pointer.x);
@@ -255,7 +255,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     _updateScore() {
-        const height = Math.round((this.ground.y - this.player.y - 40) / 200) * this.multiplier;
+        const height = Math.round((this.ground.y - this.player.y - 40) * this.multiplier / 200);
         this.score = height > this.score ? height : this.score;
         this.uiScene.scoreText.setText(`${this.score}m`);
     }
