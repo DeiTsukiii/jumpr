@@ -36,6 +36,15 @@ export default class GameScene extends Phaser.Scene {
         this.stars = data.stars || [];
     }
 
+    _getSetting(setting) {
+        const settings = localStorage.getItem('JumprSettings');
+        if (settings) {
+            const parsedSettings = JSON.parse(settings);
+            return parsedSettings.find(s => s.key === setting)?.value || null;
+        }
+        return null;
+    }
+
     _generateBackground() {
         this.stars.forEach(starData => this.add.image(starData.x, starData.y, 'flares', 'white')
             .setDisplaySize(starData.size, starData.size)

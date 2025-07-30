@@ -25,7 +25,8 @@ export default class BasicPlatform extends Phaser.GameObjects.Image {
     onHit(player) {
         if (!this.canTouch || !this.active) return;
         player.setVelocityY(-600);
-        this.scene.sound.play(this.hitSound);
+        const sfxVolume = this.scene._getSetting('sfx') ? this.scene._getSetting('sfxVol') / 100 : 0;
+        this.scene.sound.play(this.hitSound, { volume: sfxVolume });
         if (this.item) this.claimItem();
     }
 

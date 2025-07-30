@@ -56,39 +56,175 @@ export default class HomeScene extends Phaser.Scene {
         }, null, this);
     }
 
+    _applySetting(settings) {
+        localStorage.setItem('JumprSettings', JSON.stringify(settings));
+    }
+
+    _getSettings() {
+        let settings = localStorage.getItem('JumprSettings');
+        if (settings) {
+            settings = JSON.parse(settings);
+        } else {
+            const defaultSettings = [
+                { key: 'sfx', label: 'Sfx', type: 'toggle', value: true },
+                { key: 'sfxVol', label: 'Sfx Volume', type: 'slider', value: 100 },
+                { key: 'music', label: 'Music', type: 'toggle', value: true },
+                { key: 'musicVol', label: 'Music Volume', type: 'slider', value: 100 },
+            ];
+            localStorage.setItem('JumprSettings', JSON.stringify(defaultSettings));
+            settings = defaultSettings;
+        }
+
+        return settings;
+    }
+
     _setSettings() {
         const settings = this.add.container(this.center.x, this.center.y)
             .setDepth(100)
             .setScrollFactor(0)
+            .setVisible(false)
             .setAlpha(0)
-            .setScale(0.8)
-            .setVisible(false);
+            .setScale(0.8);
+
+        const width = 300;
+        const height = 400;
 
         const antiClick = this.add.rectangle(0, 0, this.center.x * 2.1, this.center.y * 2.1, 0x000000, 0)
             .setOrigin(0.5)
             .setScrollFactor(0)
             .setInteractive();
 
-        const bg = this.add.rectangle(0, 0, 300, 400, 0x000000, 0.8)
+        const bg = this.add.rectangle(0, 0, width, height, 0x000000)
             .setOrigin(0.5)
             .setStrokeStyle(2, 0xFFFFFF);
 
-        const closeButton = this.add.image(bg.width / 2, -bg.height / 2, 'closeIcon')
+        const closeBtnX = width / 2 - 10;
+        const closeBtnY = -height / 2 + 10;
+
+        const closeButtonStroke = this.add.circle(closeBtnX, closeBtnY, 20, 0xFFFFFF)
             .setOrigin(0.5)
             .setScrollFactor(0)
             .setInteractive({ useHandCursor: true })
-            .on('pointerdown', () => this.add.tween({
-                targets: settings,
-                alpha: 0,
-                scale: 0.8,
-                duration: 200,
-                ease: 'Back.easeIn',
-                onComplete: () => {
-                    settings.setVisible(false);
-                }
-            }));
+            .on('pointerdown', () => {
+                this.tweens.add({
+                    targets: settings,
+                    alpha: 0,
+                    scale: 0.8,
+                    duration: 200,
+                    ease: 'Back.easeIn',
+                    onComplete: () => settings.setVisible(false)
+                });
+            });
 
-        settings.add([antiClick, bg, closeButton]);
+        const closeButton = this.add.image(closeBtnX, closeBtnY, 'closeIcon')
+            .setDisplaySize(45, 45)
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setTint(0x000000);
+
+        const title = this.add.text(0, -height / 2 + 20, "Settings", {
+            font: `30px ${this.font}`,
+            fill: '#fff'
+        }).setOrigin(0.5, 0).setScrollFactor(0);
+
+        const options = this._getSettings();
+
+        settings.add([antiClick, bg, closeButtonStroke, closeButton, title]);
+
+        const createToggle = (x, y, option) => {
+            const trackWidth = 55;
+            const knobOffset = option.value ? 0 : 30;
+
+            const track = this.add.graphics()
+                .fillStyle(option.value ? 0x00dd00 : 0xdd0000, 0.8)
+                .fillRoundedRect(x - trackWidth + 2.5, y, trackWidth, 25, 12.5);
+
+            const knob = this.add.circle(x - knobOffset, y + 2.5, 10, 0xffffff)
+                .setOrigin(1, 0)
+                .setScrollFactor(0);
+
+            const hitbox = this.add.rectangle(x, y, trackWidth, 25, 0x000000, 0)
+                .setOrigin(1, 0)
+                .setScrollFactor(0)
+                .setInteractive({ useHandCursor: true })
+                .on('pointerdown', () => {
+                    option.value = !option.value;
+                    this._applySetting(options);
+                    this.tweens.add({
+                        targets: knob,
+                        x: x - (option.value ? 0 : 30),
+                        duration: 100,
+                        ease: 'easeInOut',
+                        onComplete: () => {
+                            track.clear()
+                                .fillStyle(option.value ? 0x00dd00 : 0xdd0000, 0.8)
+                                .fillRoundedRect(x - trackWidth + 2.5, y, trackWidth, 25, 12.5);
+                        }
+                    });
+                });
+
+            return [track, hitbox, knob];
+        };
+
+        const createSlider = (x, y, option) => {
+            const hitArea = new Phaser.Geom.Rectangle(x, y, width - 40, 10);
+            const track = this.add.graphics()
+                .fillStyle(0xFFFFFF, 0.8)
+                .fillRoundedRect(x, y, width - 40, 10, 5)
+                .setScrollFactor(0)
+                .setInteractive({
+                    hitArea: hitArea,
+                    hitAreaCallback: Phaser.Geom.Rectangle.Contains,
+                    useHandCursor: true
+                })
+                .on('pointerdown', (pointer) => {
+                    const knobX = Phaser.Math.Clamp(pointer.x - width/1.35, x, x + width - 20);
+                    option.value = Math.round(((knobX - x) / (width - 40)) * 100);
+                    option.value = Phaser.Math.Clamp(option.value, 0, 100);
+                    knob.x = knobX;
+                    this._applySetting(options);
+                });
+
+
+            const knobX = x + (option.value / 100) * (width - 40);
+            const knob = this.add.circle(knobX, y + 5, 10, 0x000000)
+                .setStrokeStyle(2, 0xffffff, 0.8)
+                .setScrollFactor(0)
+                .setInteractive({ draggable: true, useHandCursor: true })
+                .on('drag', (pointer, dragX) => {
+                    const minX = x;
+                    const maxX = x + width - 40;
+                    dragX = Phaser.Math.Clamp(dragX, minX, maxX);
+                    knob.x = dragX;
+                    option.value = Math.round(((dragX - x) / (width - 40)) * 100);
+                    option.value = Phaser.Math.Clamp(option.value, 0, 100);
+                    this._applySetting(options);
+                });
+
+            this.input.setDraggable(knob);
+
+            return [track, knob];
+        };
+
+        const startY = -height / 2 + 100;
+        let padding = [0];
+        options.forEach((option, i) => {
+            const y = startY + i * 50 + padding.reduce((a, b) => a + b, 0);
+            padding.push(option.type === 'slider' ? 30 : 0);
+            const label = this.add.text(-width / 2 + 20, y, option.label, {
+                font: `16px ${this.font}`,
+                fill: '#fff'
+            }).setOrigin(0, 0).setScrollFactor(0);
+
+            let inputs = [];
+            if (option.type === 'toggle') inputs = createToggle(width / 2 - 20, y, option);
+            else if (option.type === 'slider') inputs = createSlider(-width / 2 + 20, y + 30, option);
+
+            settings.add([label, ...inputs]);
+        });
+
+        // Pour accès externe si besoin
+        settings.options = options;
 
         return settings;
     }
@@ -152,7 +288,7 @@ export default class HomeScene extends Phaser.Scene {
     }
 
     _setDownBar() {
-        const downBarY = this.center.y - 50;
+        const downBarY = this.center.y - 34;
         const paddingX = 34;
 
         const missionsX = paddingX - 150;
