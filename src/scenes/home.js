@@ -56,6 +56,81 @@ export default class HomeScene extends Phaser.Scene {
         }, null, this);
     }
 
+    _setTopBar() {
+        const topBarY = 10 - this.center.y;
+
+        const settingIcon = this.add.image(215, topBarY, 'settingsIcon')
+            .setOrigin(1, 0)
+            .setDepth(11)
+            .setScrollFactor(0)
+            .setDisplaySize(30, 30)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {});
+
+        const multiplier = {
+            icon: this.add.image(165, topBarY, 'starIcon')
+                .setOrigin(1, 0)
+                .setDepth(11)
+                .setScrollFactor(0)
+                .setDisplaySize(30, 30),
+            text: this.add.text(135, topBarY, `x1`, { font: '20px ' + this.font, fill: '#fff' })
+                .setOrigin(1, 0)
+                .setDepth(11)
+                .setScrollFactor(0)
+        }
+
+        const gem = {};
+        gem.icon = this.add.image(-215, topBarY, 'gemIcon')
+            .setOrigin(0, 0)
+            .setDepth(11)
+            .setScrollFactor(0)
+            .setDisplaySize(30, 30);
+        gem.text = this.add.text(gem.icon.x + 35, topBarY, `000`, { font: '20px ' + this.font, fill: '#fff' })
+            .setOrigin(0, 0)
+            .setDepth(11)
+            .setScrollFactor(0);
+
+        const money = {};
+        money.icon = this.add.image(-165 + gem.text.width, topBarY, 'moneyIcon')
+            .setOrigin(0, 0)
+            .setDepth(11)
+            .setScrollFactor(0)
+            .setDisplaySize(30, 30);
+        money.text = this.add.text(money.icon.x + 35, topBarY, `000`, { font: '20px ' + this.font, fill: '#fff' })
+            .setOrigin(0, 0)
+            .setDepth(11)
+            .setScrollFactor(0);
+
+        return { settingIcon, multiplier, gem, money };
+    }
+
+    _setDownBar() {
+        const downBarY = this.center.y - 50;
+
+        const shop = {
+            bg: this.add.rectangle(0, downBarY, 80, 80, 0x000000, 0.8)
+                .setOrigin(0.5, 1)
+                .setStrokeStyle(3, 0xffffff),
+            icon: this.add.image(0, downBarY - 25, 'shopIcon')
+                .setOrigin(0.5, 1)
+                .setDepth(11)
+                .setScrollFactor(0)
+                .setDisplaySize(75, 75)
+                .setTint(0x000000),
+            iconStroke: this.add.image(0, downBarY - 20, 'shopIcon')
+                .setOrigin(0.5, 1)
+                .setDepth(10)
+                .setScrollFactor(0)
+                .setDisplaySize(85, 85),
+            text: this.add.text(0, downBarY - 5, 'Shop', { font: '25px ' + this.font, fill: '#fff' })
+                .setOrigin(0.5, 1)
+                .setDepth(11)
+                .setScrollFactor(0)
+        }
+
+        return { shop };
+    }
+
     _setMenu() {
         const menu = this.add.container(this.center.x, this.center.y)
             .setDepth(100)
@@ -65,21 +140,25 @@ export default class HomeScene extends Phaser.Scene {
             .setScrollFactor(0)
             .setOrigin(0.5)
             .setInteractive()
-            .on('pointerdown', () => this.player.body.moves = true);
+            .on('pointerdown', () => {
+                this.player.body.moves = true;
+                menu.setAlpha(0);
+            });
 
-        const tapToPlay = this.add.text(0, 230, "Tap to play", { font: '18px ' + this.font, fill: '#fff' })
+        const tapToPlay = this.add.text(0, 150, "Tap to play", { font: '18px ' + this.font, fill: '#fff' })
             .setOrigin(0.5)
             .setAlpha(0.7);
 
-        const settingIcon = this.add.image(215, 10-this.center.y, 'settingsIcon')
-            .setOrigin(1, 0)
-            .setDepth(11)
-            .setScrollFactor(0)
-            .setDisplaySize(30, 30)
-            .setInteractive({ useHandCursor: true })
-            .on('pointerdown', () => {});
+        const { settingIcon, multiplier, gem, money } = this._setTopBar();
+        const { shop } = this._setDownBar();
 
-        menu.add([mainClicker, tapToPlay, settingIcon]);
+        menu.add([
+            mainClicker, tapToPlay, settingIcon,
+            multiplier.icon, multiplier.text,
+            gem.icon, gem.text,
+            money.icon, money.text,
+            shop.bg, shop.iconStroke, shop.icon, shop.text
+        ]);
     }
 
     create() {
