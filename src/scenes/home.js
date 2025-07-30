@@ -20,7 +20,7 @@ export default class HomeScene extends Phaser.Scene {
     }
 
     _createPlayer() {
-        this.player = this.physics.add.sprite(this.center.x, 700 - this.center.y - 50, 'whiteRect')
+        this.player = this.physics.add.sprite(this.center.x, 700 - this.center.y*1.2, 'whiteRect')
             .setDisplaySize(40, 40)
             .setBounce(0)
             .setOrigin(0.5, 1)
