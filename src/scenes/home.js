@@ -259,7 +259,7 @@ export default class HomeScene extends Phaser.Scene {
             localStorage.setItem('JumprMultiplier', multiplierScore);
         }
         const multiplier = {
-            icon: this.add.image(165, topBarY, 'starIcon')
+            icon: this.add.image(165, topBarY, 'item-star')
                 .setOrigin(1, 0)
                 .setDepth(11)
                 .setScrollFactor(0)

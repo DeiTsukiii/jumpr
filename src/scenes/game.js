@@ -11,6 +11,31 @@ export default class GameScene extends Phaser.Scene {
         this.stars = data.stars || [];
     }
 
+    _setBase() {
+        this.items = {
+            shield: { value: 0, duration: 60 },
+            feather: { value: 0, duration: 20 },
+            star: { value: 0, duration: 8 }
+        };
+        this.platforms = [];
+        this.started = false;
+        this.score = 0;
+        this.uiScene;
+        this.minDistanceX = 100;
+        this.spawnRates = {
+            items: 0.05,
+            platforms: 0
+        }
+        this.platformSpacing = { x: 200, y: 90 };
+        this.maxPlatformSpacing = 190;
+        this.incrementPlatSpawnRate = 0.005;
+        this.incrementPlatSpacing = 1;
+        this.itemDepletionRate = 1;
+        mouseX = 225;
+        this.canJump = true;
+        this.multiplier = localStorage.getItem('JumprMultiplier') ? parseInt(localStorage.getItem('JumprMultiplier')) : 1;
+    }
+
     _getSetting(setting) {
         const settings = localStorage.getItem('JumprSettings');
         if (settings) {
@@ -57,18 +82,7 @@ export default class GameScene extends Phaser.Scene {
             .setOrigin(0.5, 1)
             .refreshBody();
     }
-
-    _onPlatformHit(player, platform) {
-        const playerBottom = player.getBounds().bottom;
-        const platformTop = platform.getBounds().top;
-        const tolerance = 15;
-
-        if (Math.abs(playerBottom - platformTop) < tolerance && platform.canTouch) {
-            if (!this.started) this.started = true;
-            
-            platform.onHit(player);
-        }
-    }
+    
     _getItem(item) {
         this.items[item].value = this.items[item].duration;
     }
@@ -100,31 +114,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     create() {
-        this.player;
-        this.playerTrail;
-        this.items = {
-            shield: { value: 0, duration: 60 },
-            feather: { value: 0, duration: 20 }
-        };
-        this.ground;
-        this.platforms = [];
-        this.started = false;
-        this.score = 0;
-        this.uiScene;
-        this.minDistanceX = 100;
-        this.canJump = true;
-        this.spawnRates = {
-            items: 0.05,
-            platforms: 0
-        }
-        this.platformSpacing = { x: 200, y: 90 };
-        this.maxPlatformSpacing = 190;
-        this.incrementPlatSpawnRate = 0.005;
-        this.incrementPlatSpacing = 1;
-        this.itemDepletionRate = 1;
-        this.multiplier = localStorage.getItem('JumprMultiplier') ? parseInt(localStorage.getItem('JumprMultiplier')) : 1;
-        mouseX = 225;
-
+        this._setBase();
         this.input.on('pointermove', pointer => mouseX = pointer.x);
         this._generateBackground();
         this._createWorld();
@@ -178,19 +168,12 @@ export default class GameScene extends Phaser.Scene {
         localStorage.setItem('404HighScore', highScore);
 
         this.platforms.forEach(platform => platform.destroy());
-        this.platforms = [];
         const playerX = this.player.x;
         this.player.destroy();
         this.playerTrail.destroy();
+        this._setBase();
         this.canJump = false;
-        this.started = false;
         this.uiScene.setMenu('Game Over', `Score: ${this.score}m`, `High Score: ${highScore}m`, 'Play Again', () => this.canJump = true);
-        this.score = 0;
-        this.spawnRates = {
-            items: 0.05,
-            platforms: 0
-        }
-        this.platformSpacing = { x: 200, y: 90 };
         mouseX = playerX;
         this._createPlayer(playerX);
         this._createPlatforms();
@@ -200,8 +183,7 @@ export default class GameScene extends Phaser.Scene {
         this.player.setVelocityY(-1500);
         this.player.setPosition(this.player.x, this.player.y - 100);
         this.items.shield.value = 0;
-
-        this._circleStarsFX(this.player.x, this.player.y );
+        this._circleStarsFX(this.player.x, this.player.y);
     }
 
     _handleGameOver() {
@@ -282,5 +264,12 @@ export default class GameScene extends Phaser.Scene {
 
         if (this.started && this.platformSpacing.x >= 0) this.platformSpacing.x -= this.incrementPlatSpacing * (1 / 1000) * delta;
         else if (this.platformSpacing.x < 0) this.platformSpacing.x = 0;
+
+        if (this.items.star.value > 0) {
+            const rainbow = Phaser.Display.Color.HSVToRGB((time % 1000) / 1000, 1, 1).color;
+            this.player.setTint(rainbow);
+        } else if (this.player.tintTopLeft !== 0xffffff) this.player.clearTint();
+
+        this.player.setGravityY(this.items.feather.value > 0 ? -200 : 0);
     }
 }

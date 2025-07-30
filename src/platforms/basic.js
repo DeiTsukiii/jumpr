@@ -19,12 +19,20 @@ export default class BasicPlatform extends Phaser.GameObjects.Image {
         }
         this.fallRate = 30;
 
-        this.scene.physics.add.collider(this.scene.player, this, this.scene._onPlatformHit, null, this.scene);
+        this.scene.physics.add.collider(this.scene.player, this, this.onHit.bind(this), null, this.scene);
     }
 
     onHit(player) {
-        if (!this.canTouch || !this.active) return;
-        player.setVelocityY(-600);
+        const playerBottom = player.getBounds().bottom;
+        const platformTop = this.getBounds().top;
+        const tolerance = 15;
+
+        if (Math.abs(playerBottom - platformTop) > tolerance || !this.canTouch || !this.active) {
+            if (this.scene.items.star.value > 0) player.setPosition(this.x, this.y + player.height/2 + this.height/2);
+            else return;
+        }
+        if (!this.scene.started) this.scene.started = true;
+        player.setVelocityY(this.scene.items.star.value > 0 ? -700 : -600);
         const sfxVolume = this.scene._getSetting('sfx') ? this.scene._getSetting('sfxVol') / 100 : 0;
         this.scene.sound.play(this.hitSound, { volume: sfxVolume });
         if (this.item) this.claimItem();
