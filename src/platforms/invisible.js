@@ -4,7 +4,9 @@ export default class InvisiblePlatform extends BasicPlatform {
     constructor(scene, x, y) {
         super(scene, x, y);
 
-        this.setTint(0x00FFFF);
+        this.setTexture('platform-invisible');
+        this.setDisplaySize(30, 30);
+        this.setOrigin(0.5, 0);
         this.setAlpha(0);
 
         this.nextReveal = 0;

@@ -8,6 +8,11 @@ export default class HomeScene extends Phaser.Scene {
     }
 
     _createBg() {
+        this.add.image(0, 0, 'bg-gradient')
+            .setOrigin(0)
+            .setScrollFactor(0)
+            .setDepth(-2);
+            
         if (this.stars.length === 0) for (let i = 0; i < window.innerHeight / 5; i++) {
             const x = Phaser.Math.Between(0, 450);
             const y = Phaser.Math.Between(0, window.innerHeight);
@@ -50,10 +55,13 @@ export default class HomeScene extends Phaser.Scene {
     }
 
     _createGround() {
-        const ground = this.physics.add.staticImage(225, 700, 'whiteRect')
+        const ground = this.physics.add.staticImage(225, 712, 'whiteRect')
             .setDisplaySize(450, 40)
             .setOrigin(0.5, 1)
             .refreshBody();
+        
+        this.physics.add.staticImage(225, 700, 'ground').setDepth(11).setOrigin(0.5, 1).setScale(0.85);
+
         this.physics.add.collider(this.player, ground, () => {
             this.scene.start('GameScene', { stars: this.stars });
             this.scene.stop('HomeScene');
@@ -427,16 +435,16 @@ export default class HomeScene extends Phaser.Scene {
             .setOrigin(0, 0.5);
 
         const { settingIcon, multiplier, gem, money } = this._setTopBar();
-        // const { shop, me, missions } = this._setDownBar();
+        const { shop, me, missions } = this._setDownBar();
 
         menu.add([
             mainClicker, tapToPlay, settingIcon, highScore,
             multiplier.icon, multiplier.text,
             gem.icon, gem.text,
             money.icon, money.text,
-            // shop.bg, shop.iconStroke, shop.icon, shop.text,
-            // me.bg, me.iconStroke, me.icon, me.text,
-            // missions.bg, missions.iconStroke, missions.icon, missions.text
+            shop.bg, shop.iconStroke, shop.icon, shop.text,
+            me.bg, me.iconStroke, me.icon, me.text,
+            missions.bg, missions.iconStroke, missions.icon, missions.text
         ]);
     }
 

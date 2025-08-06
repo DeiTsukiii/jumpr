@@ -15,7 +15,10 @@ export default class PreloadingScene extends Phaser.Scene {
 
         this.load.font('Monocraft', 'Monocraft.ttf');
         this.load.audio('platformSound', 'platform.mp3');
+        // this.load.audio('music', 'music.mp3');
         this.load.atlas('flares', 'flares.png', 'flares.json');
+        this.load.image('ground', 'ground.png');
+        this.load.image('ground2', 'ground2.png');
 
         this.load.image('item-shield', 'items/shield.png');
         this.load.image('item-feather', 'items/feather.png');
@@ -32,7 +35,27 @@ export default class PreloadingScene extends Phaser.Scene {
         this.load.image('missionsIcon', 'missions.png');
         this.load.image('closeIcon', 'close.png');
 
+        this.load.image('platform-invisible', 'platforms/invisible.png');
+        this.load.image('platform-basic', 'platforms/basic.png');
+        this.load.image('platform-breakable', 'platforms/breakable.png');
+        this.load.image('platform-bounce', 'platforms/bounce.png');
+
         this.make.graphics().fillStyle(0xffffff).fillRect(0, 0, 50, 10).generateTexture('whiteRect', 50, 10).destroy();
+
+        const width = this.scale.width;
+        const height = this.scale.height;
+
+        const rt = this.textures.createCanvas('bg-gradient', width, height);
+        const ctx = rt.getContext();
+
+        const gradient = ctx.createLinearGradient(0, 0, 0, height);
+        gradient.addColorStop(0, '#0E0E0E');
+        gradient.addColorStop(1, '#301e4eff');
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
+
+        rt.refresh();
     }
 
     create() {

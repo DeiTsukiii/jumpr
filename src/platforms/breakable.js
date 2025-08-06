@@ -4,7 +4,7 @@ export default class BreakablePlatform extends BasicPlatform {
     constructor(scene, x, y) {
         super(scene, x, y);
 
-        this.setTint(0xff0000);
+        this.setTexture('platform-breakable');
         this.touchs = 0;
     }
 

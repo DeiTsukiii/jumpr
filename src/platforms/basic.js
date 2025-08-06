@@ -1,10 +1,11 @@
 export default class BasicPlatform extends Phaser.GameObjects.Image {
     constructor(scene, x, y) {
-        super(scene, x, y, 'whiteRect');
+        super(scene, x, y, 'platform-basic');
         this.scene = scene;
         scene.add.existing(this);
         scene.physics.add.existing(this);
         this.setDisplaySize(30, 30);
+        this.setTint(0x8ba3bb);
         this.setOrigin(0.5, 0);
         this.canTouch = true;
         this.active = true;
@@ -19,18 +20,22 @@ export default class BasicPlatform extends Phaser.GameObjects.Image {
         }
         this.fallRate = 30;
 
-        this.scene.physics.add.collider(this.scene.player, this, this.onHit.bind(this), null, this.scene);
+        this.scene.physics.add.collider(this.scene.player, this, this.hitHandler.bind(this), null, this.scene);
     }
 
-    onHit(player) {
+    hitHandler(player) {
         const playerBottom = player.getBounds().bottom;
         const platformTop = this.getBounds().top;
         const tolerance = 15;
 
-        if (Math.abs(playerBottom - platformTop) > tolerance || !this.canTouch || !this.active) {
-            if (this.scene.items.star.value > 0) player.setPosition(this.x, this.y + player.height/2 + this.height/2);
+        if (Math.abs(playerBottom - platformTop) > tolerance) {
+            if (this.scene.items.star.value > 0 && this.canTouch && this.active) player.setPosition(this.x, this.y + player.height/2 + this.height/2);
             else return;
         }
+        this.onHit(player);
+    }
+
+    onHit(player) {
         if (!this.scene.started) this.scene.started = true;
         player.setVelocityY(this.scene.items.star.value > 0 ? -700 : -600);
         const sfxVolume = this.scene._getSetting('sfx') ? this.scene._getSetting('sfxVol') / 100 : 0;

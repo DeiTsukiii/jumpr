@@ -91,6 +91,7 @@ export default class UiScene extends Phaser.Scene {
             .setInteractive({ useHandCursor: true })
             .on('pointerdown', () => {
                 const stars = this.scene.get('GameScene').stars;
+                this.scene.get('GameScene').sound.stopAll();
                 this.scene.start('HomeScene', { stars });
                 this.scene.stop('GameScene');
                 this.sys.game.events.off(Phaser.Core.Events.BLUR);

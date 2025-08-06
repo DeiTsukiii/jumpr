@@ -6,7 +6,7 @@ export default class GameScene extends Phaser.Scene {
     constructor() {
         super('GameScene');
     }
-    
+
     init(data) {
         this.stars = data.stars || [];
     }
@@ -46,14 +46,71 @@ export default class GameScene extends Phaser.Scene {
     }
 
     _generateBackground() {
-        this.stars.forEach(starData => this.add.image(starData.x, starData.y, 'flares', 'white')
-            .setDisplaySize(starData.size, starData.size)
+        this.add.image(0, 0, 'bg-gradient')
+            .setOrigin(0)
             .setScrollFactor(0)
-            .setDepth(-1)
-            .setAlpha(starData.alpha));
+            .setDepth(-5);
+
+        this.stars.forEach(starData => {
+            const img = this.add.image(starData.x, starData.y, 'flares', 'white')
+                .setDisplaySize(starData.size, starData.size)
+                .setScrollFactor(0)
+                .setDepth(-2)
+                .setAlpha(starData.alpha);
+
+            starData.image = img;
+        });
+
+        this.time.addEvent({
+            delay: 1000,
+            loop: true,
+            callback: () => {
+                this.stars.forEach(star => {
+                    const newAlpha = Phaser.Math.FloatBetween(0.3, 0.9);
+                    this.tweens.add({
+                        targets: star.image,
+                        alpha: newAlpha,
+                        duration: 1500,
+                    });
+                });
+            }
+        });
+
+        this.time.addEvent({
+            delay: Phaser.Math.Between(8000, 15000),
+            loop: true,
+            callback: () => {
+                if (this.ground.y - this.player.y < this.scale.height) return;
+                const startY = Phaser.Math.Between(this.player.y - 50, this.player.y - this.scale.height / 2);
+                const targetY = Phaser.Math.Between(this.player.y + 50, this.player.y + this.scale.height / 2);
+
+                const shootingStar = this.add.image(-50, startY, 'flares', 'white').setAlpha(0);
+
+                this.add.particles(0, 0, 'flares', {
+                    frame: 'white',
+                    scale: { start: 0.2, end: 0 },
+                    alpha: { start: 1, end: 0 },
+                    lifespan: 1000,
+                    blendMode: 'ADD',
+                    follow: shootingStar,
+                    followOffset: { y: -20, x: 0 }
+                });
+
+                this.tweens.add({
+                    targets: shootingStar,
+                    x: 500,
+                    y: targetY,
+                    duration: 1500,
+                    ease: 'Cubic.easeOut',
+                    onComplete: () => {
+                        shootingStar.destroy();
+                    }
+                });
+            }
+        });
     }
 
-    _createPlayer(playerX = 225, playerY = 660) {
+    _createPlayer(playerX = 225, playerY = 672) {
         this.player = this.physics.add.sprite(playerX, playerY, 'whiteRect')
             .setDisplaySize(40, 40)
             .setBounce(0)
@@ -71,18 +128,22 @@ export default class GameScene extends Phaser.Scene {
             follow: this.player,
             followOffset: { y: -20, x: 0 },
         });
+        this.playerShadow = this.add.ellipse(playerX, 672, 40, 15, 0x000000, 0.5);
     }
 
     _createWorld() {
         this.cameras.main.setBounds(0, -99300, 450, 100000);
         this.physics.world.setBounds(0, -99300, 450, 100000);
 
-        this.ground = this.physics.add.staticImage(225, 700, 'whiteRect')
+        this.ground = this.physics.add.staticImage(225, 712, 'whiteRect')
             .setDisplaySize(450, 40)
             .setOrigin(0.5, 1)
             .refreshBody();
+        
+        this.physics.add.staticImage(225, 700, 'ground').setOrigin(0.5, 1).setScale(0.85);
+        this.physics.add.staticImage(225, 700, 'ground2').setDepth(11).setOrigin(0.5, 1).setScale(0.85);
     }
-    
+
     _getItem(item) {
         this.items[item].value = this.items[item].duration;
     }
@@ -121,6 +182,10 @@ export default class GameScene extends Phaser.Scene {
         this._createPlayer();
         this._createPlatforms();
         this._setUI();
+        // this.sound.play('music', {
+        //     loop: true,
+        //     volume: this._getSetting('music') ? this._getSetting('musicVol') / 400 : 0
+        // });
     }
 
     _circleStarsFX(x, y) {
@@ -171,6 +236,7 @@ export default class GameScene extends Phaser.Scene {
         const playerX = this.player.x;
         this.player.destroy();
         this.playerTrail.destroy();
+        this.playerShadow.destroy();
         this._setBase();
         this.canJump = false;
         this.uiScene.setMenu('Game Over', `Score: ${this.score}m`, `High Score: ${highScore}m`, 'Play Again', () => this.canJump = true);
@@ -201,6 +267,8 @@ export default class GameScene extends Phaser.Scene {
         const distanceX = mouseX - this.player.x;
         const targetSpeed = Math.abs(distanceX) > 3 ? Phaser.Math.Clamp(distanceX * 5, -speed, speed) : 0;
         this.player.setVelocityX(targetSpeed);
+        this.playerShadow.setPosition(this.player.x, this.ground.y - 39);
+        this.playerShadow.setScale(Math.max(500 - ((this.ground.y - this.player.y) * 2.5), 0) / 400);
 
         if (this.input.activePointer.isDown && this.player.body.touching.down && this.ground.y - this.player.y <= 40 && this.canJump) this.player.setVelocityY(-600);
     }
@@ -210,7 +278,7 @@ export default class GameScene extends Phaser.Scene {
             if (!platform.body) return;
             platform.update(time, delta);
 
-            if ((platform.y >= this.player.y + (innerHeight / 2) || platform.y >= this.ground.y - 100) && platform.active) {
+            if ((platform.y >= this.player.y + (innerHeight / 2) || platform.y >= this.ground.y - 150) && platform.active) {
                 platform.active = false;
                 this.tweens.add({
                     targets: platform,
