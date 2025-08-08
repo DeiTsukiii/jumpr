@@ -41,7 +41,7 @@ export default class HomeScene extends Phaser.Scene {
         this.cameras.main.setBounds(0, -99300, 450, 100000);
         this.physics.world.setBounds(0, -99300, 450, 100000);
 
-        this.add.particles(0, 0, 'flares', {
+        this.playerTrail = this.add.particles(0, 0, 'flares', {
             frame: 'white',
             scale: { start: 0.2, end: 0 },
             alpha: { start: 1, end: 0 },
@@ -362,6 +362,77 @@ export default class HomeScene extends Phaser.Scene {
         return shop;
     }
 
+    _setMe() {
+        const me = this.add.container(this.center.x, this.center.y)
+            .setDepth(100)
+            .setScrollFactor(0)
+            // .setVisible(false)
+            // .setAlpha(0)
+            // .setScale(0.8);
+
+        const width = 400;
+        const height = 600;
+
+        const antiClick = this.add.rectangle(0, 0, this.center.x * 2.1, this.center.y * 2.1, 0x000000, 0)
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setInteractive();
+
+        const bg = this.add.rectangle(0, 0, width, height, 0x000000)
+            .setOrigin(0.5)
+            .setStrokeStyle(2, 0xFFFFFF);
+
+        const closeBtnX = width / 2 - 10;
+        const closeBtnY = -height / 2 + 10;
+
+        const closeButtonStroke = this.add.circle(closeBtnX, closeBtnY, 20, 0xFFFFFF)
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {
+                this.tweens.add({
+                    targets: me,
+                    alpha: 0,
+                    scale: 0.8,
+                    duration: 200,
+                    ease: 'Back.easeIn',
+                    onComplete: () => me.setVisible(false)
+                });
+            });
+
+        const closeButton = this.add.image(closeBtnX, closeBtnY, 'closeIcon')
+            .setDisplaySize(45, 45)
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setTint(0x000000);
+
+        const title = this.add.text(0, -height / 2 + 20, "Customisation", {
+            font: `30px ${this.font}`,
+            fill: '#fff'
+        }).setOrigin(0.5, 0).setScrollFactor(0);
+
+
+        const player = this.physics.add.sprite(0, 100, 'whiteRect').setDisplaySize(40, 40).setOrigin(0.5, 1);
+        player.body.moves = false;
+        const trail = this.add.particles(0, 0, 'flares', {
+            frame: 'white',
+            scale: { start: 0.2, end: 0 },
+            alpha: { start: 1, end: 0 },
+            lifespan: 1000,
+            blendMode: 'ADD',
+            follow: player,
+            followOffset: { y: -20, x: 0 },
+            speedY: -400,
+            speedX: { min: -2, max: 2 },
+        });
+
+
+
+        me.add([antiClick, bg, closeButtonStroke, closeButton, title, player, trail]);
+
+        return me;
+    }
+
     _setTopBar() {
         const topBarY = 10 - this.center.y;
 
@@ -501,6 +572,7 @@ export default class HomeScene extends Phaser.Scene {
                 .setScrollFactor(0)
         }
 
+        const meMenu = this._setMe();
         const meX = shopX + (shop.bg.width/2) + 40 + paddingX;
         const me = {
             bg: this.add.rectangle(meX, downBarY, 80, 80, 0x000000, 0.8)
@@ -508,7 +580,16 @@ export default class HomeScene extends Phaser.Scene {
                 .setStrokeStyle(3, 0xffffff)
                 .setScrollFactor(0)
                 .setInteractive({ useHandCursor: true })
-                .on('pointerdown', () => {}),
+                .on('pointerdown', () => {
+                    meMenu.setVisible(true);
+                    this.tweens.add({
+                        targets: meMenu,
+                        alpha: 1,
+                        scale: 1,
+                        duration: 200,
+                        ease: 'Back.easeOut'
+                    });
+                }),
             icon: this.add.image(meX, downBarY - 25, 'userIcon')
                 .setOrigin(0.5, 1)
                 .setDepth(11)
