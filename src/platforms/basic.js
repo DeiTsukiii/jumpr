@@ -13,7 +13,8 @@ export default class BasicPlatform extends Phaser.GameObjects.Image {
         this.body.setAllowGravity(false);
         this.hitSound = 'platformSound';
 
-        if (Math.random() < this.scene.spawnRates.items) {
+        if (Math.random() < this.scene.spawnRates.pieces) this.setItem('money');
+        else if (Math.random() < this.scene.spawnRates.items) {
             const items = [...Object.keys(this.scene.items), 'mystery'];
             const randomItem = Phaser.Utils.Array.GetRandom(items);
             this.setItem(randomItem);
@@ -46,16 +47,21 @@ export default class BasicPlatform extends Phaser.GameObjects.Image {
     update(time, delta) {
         if (!this.body) return;
         this.y += this.fallRate * (1 / 1000) * delta;
-        if (!this.item) return;
-        this.item.setPosition(this.x, this.y - 17 - Math.sin(time * 0.002) * 5);
-        this.item.alpha = this.alpha;
+        if (this.item) {
+            this.item.setPosition(this.x, this.y - 17 - Math.sin(time * 0.002) * 5);
+            this.item.alpha = this.alpha;
+        } else if (this.piece) {
+            this.piece.setPosition(this.x, this.y - 17 - Math.sin(time * 0.002) * 5);
+            this.piece.alpha = this.alpha;
+        }
     }
 
     claimItem() {
         if (!this.item || !this.scene) return;
         this.scene._circleStarsFX(this.item.x, this.item.y);
         const item = this.item.texture.key.replace('item-', '');
-        this.scene._getItem(item === 'mystery' ? Phaser.Utils.Array.GetRandom(Object.keys(this.scene.items)) : item);
+        if (item === 'money') this.addMoney(1);
+        else this.scene._getItem(item === 'mystery' ? Phaser.Utils.Array.GetRandom(Object.keys(this.scene.items)) : item);
         this.item.destroy();
         this.item = null;
     }
@@ -67,5 +73,10 @@ export default class BasicPlatform extends Phaser.GameObjects.Image {
 
     setItem(item) {
         this.item = this.scene.add.image(this.x, this.y - 17, `item-${item}`).setDisplaySize(25, 25).setOrigin(0.5, 0.5);
+    }
+
+    addMoney(amount) {
+        let nb = Number(localStorage.getItem('JumprMoney'));
+        localStorage.setItem('JumprMoney', nb + amount);
     }
 }

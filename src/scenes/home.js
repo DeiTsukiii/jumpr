@@ -240,6 +240,128 @@ export default class HomeScene extends Phaser.Scene {
         return settings;
     }
 
+    _setShop() {
+        const shop = this.add.container(this.center.x, this.center.y)
+            .setDepth(100)
+            .setScrollFactor(0)
+            .setVisible(false)
+            .setAlpha(0)
+            .setScale(0.8);
+
+        const width = 400;
+        const height = 600;
+
+        const antiClick = this.add.rectangle(0, 0, this.center.x * 2.1, this.center.y * 2.1, 0x000000, 0)
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setInteractive();
+
+        const bg = this.add.rectangle(0, 0, width, height, 0x000000)
+            .setOrigin(0.5)
+            .setStrokeStyle(2, 0xFFFFFF);
+
+        const closeBtnX = width / 2 - 10;
+        const closeBtnY = -height / 2 + 10;
+
+        const closeButtonStroke = this.add.circle(closeBtnX, closeBtnY, 20, 0xFFFFFF)
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {
+                this.tweens.add({
+                    targets: shop,
+                    alpha: 0,
+                    scale: 0.8,
+                    duration: 200,
+                    ease: 'Back.easeIn',
+                    onComplete: () => shop.setVisible(false)
+                });
+            });
+
+        const closeButton = this.add.image(closeBtnX, closeBtnY, 'closeIcon')
+            .setDisplaySize(45, 45)
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setTint(0x000000);
+
+        const title = this.add.text(0, -height / 2 + 20, "Shop", {
+            font: `30px ${this.font}`,
+            fill: '#fff'
+        }).setOrigin(0.5, 0).setScrollFactor(0);
+
+        shop.add([antiClick, bg, closeButtonStroke, closeButton, title]);
+
+        const itemsMultiplicator = localStorage.getItem('JumprItemsMultiplicator');
+        let parsedItemsMultiplicator;
+        if (itemsMultiplicator) parsedItemsMultiplicator = JSON.parse(itemsMultiplicator);
+        else {
+            parsedItemsMultiplicator = { shield: 1, feather: 1, star: 1 };
+            localStorage.setItem('JumprItemsMultiplicator', JSON.stringify(parsedItemsMultiplicator));
+        }
+        Object.keys(parsedItemsMultiplicator).forEach((item, i) => {
+            const y = -height / 2 + 150 + i * 120;
+            let multiplicator = Math.round((parsedItemsMultiplicator[item] - 1) * 10) + 1;
+            const card = this.add.rectangle(0, y, 350, 100, 0x0E0E0E, 0.8)
+                .setOrigin(0.5)
+                .setStrokeStyle(2, 0xFFFFFF)
+                .setScrollFactor(0);
+
+            const title = this.add.text(50, y - 30, item.charAt(0).toUpperCase() + item.slice(1), {
+                font: `20px ${this.font}`,
+                fill: '#FFFFFF'
+            }).setOrigin(0.5).setScrollFactor(0);
+
+            const icon = this.add.image(-170, y, `item-${item}`)
+                .setDisplaySize(80, 80)
+                .setOrigin(0, 0.5)
+                .setScrollFactor(0);
+
+            let price = 50 * multiplicator;
+            const buyButton = [
+                this.add.rectangle(50, y + 25, 200, 30, 0xFFFFFF, 0)
+                    .setOrigin(0.5)
+                    .setScrollFactor(0)
+                    .setInteractive({ useHandCursor: true })
+                    .on('pointerdown', () => {
+                        const nbMoney = Number(localStorage.getItem('JumprMoney'));
+                        if (nbMoney < price || multiplicator > 5) return;
+                        localStorage.setItem('JumprMoney', nbMoney - price);
+                        multiplicator++;
+                        parsedItemsMultiplicator[item] = Number(`1.${multiplicator-1}`);
+                        localStorage.setItem('JumprItemsMultiplicator', JSON.stringify(parsedItemsMultiplicator));
+
+                        price = 50 * multiplicator;
+                        buyButton[2].setText(multiplicator > 5 ? 'Max' : `${price}  `);
+                        buyButton[3].x = multiplicator > 5 ? 1000 : 55 + price.toString().length * 5;
+
+                        multiplicatorBar.clear();
+                        for (let i = 0; i < 5; i++) multiplicatorBar.fillStyle(0xFFFFFF, i + 1 < multiplicator ? 1 : 0.2).fillRoundedRect(-50 + i * 40, y - 10, 38, 10, 5);
+                    
+                        this._setMoney(nbMoney - price);
+                    }),
+                
+                this.add.graphics()
+                    .setScrollFactor(0)
+                    .fillStyle(0xFFFFFF)
+                    .fillRoundedRect(-50, y + 10, 200, 30, 5),
+                
+                this.add.text(50, y + 22.5, multiplicator > 5 ? 'Max' : `${price}  `, {
+                    font: `20px ${this.font}`,
+                    fill: '#000'
+                }).setOrigin(0.5),
+
+                this.add.image(multiplicator > 5 ? 1000 : 55 + price.toString().length * 5, y + 25, 'moneyIcon').setTint(0x000000).setDisplaySize(25, 25).setOrigin(0.5, 0.5).setScrollFactor(0)
+            ];
+
+            const multiplicatorBar = this.add.graphics().setScrollFactor(0);
+            for (let i = 0; i < 5; i++) multiplicatorBar.fillStyle(0xFFFFFF, i + 1 < multiplicator ? 1 : 0.2).fillRoundedRect(-50 + i * 40, y - 10, 38, 10, 5);
+
+            shop.add([ card, title, icon, multiplicatorBar, ...buyButton ]);
+        });
+
+        return shop;
+    }
+
     _setTopBar() {
         const topBarY = 10 - this.center.y;
 
@@ -279,26 +401,38 @@ export default class HomeScene extends Phaser.Scene {
         }
 
         const gem = {};
+        let nbGem = localStorage.getItem('JumprGem');
+        if (!nbGem) {
+            nbGem = 0;
+            localStorage.setItem('JumprGem', nbGem);
+        }
         gem.icon = this.add.image(-215, topBarY, 'gemIcon')
             .setOrigin(0, 0)
             .setDepth(11)
             .setScrollFactor(0)
             .setDisplaySize(30, 30);
-        gem.text = this.add.text(gem.icon.x + 35, topBarY, `000`, { font: '20px ' + this.font, fill: '#fff' })
+        gem.text = this.add.text(gem.icon.x + 35, topBarY, nbGem, { font: '20px ' + this.font, fill: '#fff' })
             .setOrigin(0, 0)
             .setDepth(11)
             .setScrollFactor(0);
 
         const money = {};
+        let nbMoney = localStorage.getItem('JumprMoney');
+        if (!nbMoney) {
+            nbMoney = 0;
+            localStorage.setItem('JumprMoney', nbMoney);
+        }
         money.icon = this.add.image(-165 + gem.text.width, topBarY, 'moneyIcon')
             .setOrigin(0, 0)
             .setDepth(11)
             .setScrollFactor(0)
             .setDisplaySize(30, 30);
-        money.text = this.add.text(money.icon.x + 35, topBarY, `000`, { font: '20px ' + this.font, fill: '#fff' })
+        money.text = this.add.text(money.icon.x + 35, topBarY, nbMoney, { font: '20px ' + this.font, fill: '#fff' })
             .setOrigin(0, 0)
             .setDepth(11)
             .setScrollFactor(0);
+
+        this._setMoney = amount => money.text.setText(amount);
 
         return { settingIcon, multiplier, gem, money };
     }
@@ -332,6 +466,7 @@ export default class HomeScene extends Phaser.Scene {
                 .setScrollFactor(0)
         }
 
+        const shopMenu = this._setShop();
         const shopX = missionsX + (missions.bg.width/2) + 40 + paddingX;
         const shop = {
             bg: this.add.rectangle(shopX, downBarY, 80, 80, 0x000000, 0.8)
@@ -339,7 +474,16 @@ export default class HomeScene extends Phaser.Scene {
                 .setStrokeStyle(3, 0xffffff)
                 .setScrollFactor(0)
                 .setInteractive({ useHandCursor: true })
-                .on('pointerdown', () => {}),
+                .on('pointerdown', () => {
+                    shopMenu.setVisible(true);
+                    this.tweens.add({
+                        targets: shopMenu,
+                        alpha: 1,
+                        scale: 1,
+                        duration: 200,
+                        ease: 'Back.easeOut'
+                    });
+                }),
             icon: this.add.image(shopX, downBarY - 25, 'shopIcon')
                 .setOrigin(0.5, 1)
                 .setDepth(11)

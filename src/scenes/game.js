@@ -17,6 +17,15 @@ export default class GameScene extends Phaser.Scene {
             feather: { value: 0, duration: 20 },
             star: { value: 0, duration: 8 }
         };
+        const itemsMultiplicator = localStorage.getItem('JumprItemsMultiplicator');
+        let parsedItemsMultiplicator;
+        if (itemsMultiplicator) parsedItemsMultiplicator = JSON.parse(itemsMultiplicator);
+        else {
+            parsedItemsMultiplicator = {};
+            Object.keys(this.items).forEach(item => parsedItemsMultiplicator[item] = 1);
+            localStorage.setItem('JumprItemsMultiplicator', JSON.stringify(parsedItemsMultiplicator));
+        }
+        Object.keys(this.items).forEach(item => this.items[item].duration *= parsedItemsMultiplicator[item]);
         this.platforms = [];
         this.started = false;
         this.score = 0;
@@ -24,7 +33,8 @@ export default class GameScene extends Phaser.Scene {
         this.minDistanceX = 100;
         this.spawnRates = {
             items: 0.05,
-            platforms: 0
+            platforms: 0,
+            pieces: 0.1
         }
         this.platformSpacing = { x: 200, y: 90 };
         this.maxPlatformSpacing = 190;

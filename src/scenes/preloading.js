@@ -24,6 +24,7 @@ export default class PreloadingScene extends Phaser.Scene {
         this.load.image('item-feather', 'items/feather.png');
         this.load.image('item-mystery', 'items/mystery.png');
         this.load.image('item-star', 'items/star.png');
+        this.load.image('item-money', 'items/money.png');
 
         this.load.image('pauseIcon', 'pause.png');
         this.load.image('logo', 'logo.png');
